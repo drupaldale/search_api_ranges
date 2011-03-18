@@ -1,0 +1,11 @@
+
+name = Search ranges
+description = "Provides facet blocks with a jQuery min/max slider (for numerical indexes only)."
+dependencies[] = search_api
+dependencies[] = search_api_facets
+dependencies[] = block
+core = 7.x
+package = Search
+
+files[] = includes/query.inc
+files[] = search_api_ranges.entity.inc
