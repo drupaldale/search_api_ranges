@@ -229,11 +229,7 @@ function search_api_ranges_block_view($delta = '') {
     '#slider' => '', 
   );
     
-  $theme['#slider'] = drupal_get_form('search_api_ranges_block_view_form', $delta, $query->getKeys());
-  
-  // for each range filter, we need to find:
-  // - limits: the minimum and maximum values based on active filters
-  // - settings: the user's selection, which may not exceed the limits  
+  $theme['#slider'] = drupal_get_form('search_api_ranges_block_view_form', $delta, $range->options['field_name'], $query->getKeys());
 
   return array(
     'subject' => $range->options['field_name'],
@@ -273,7 +269,7 @@ function search_api_ranges_get_blocks($reset = FALSE) {
  * 
  * @todo include the keys
  */
-function search_api_ranges_minmax_execute($field, $order, $params, $index_id, $keys) {
+function search_api_ranges_minmax($field, $order, $params, $index_id, $keys) {
   $index = search_api_index_load($index_id);
   
   $options = array();
@@ -281,20 +277,19 @@ function search_api_ranges_minmax_execute($field, $order, $params, $index_id, $k
   if (isset($params['filter'])) {
     $options['filters'] = $params['filter'];  
   }
-
   $options['search id'] = 'search_api_ranges:minmax/' . $order;
+  
+  // helps avoid running the ranges query alter
+  $options['search_api_ranges skip'] = 1;
   
   $query = search_api_query($index_id, $options);
   $query->sort($field, $order);
   $query->keys($keys);
 
-  // @todo I've hacked the search_api/includes/query.inc to do this
-  // how to properly override & call it?
-  $results = $query->executeClean();
+  $results = search_api_ranges_minmax_execute($query);
   if(!$results['results']) {
     return;
   }
-  
   foreach ($results['results'] as $result) {
     $item = item_load($result['id'], $index->entity_type);  
   }
@@ -304,16 +299,81 @@ function search_api_ranges_minmax_execute($field, $order, $params, $index_id, $k
 }
 
 /**
+ * Executes the min/max search query.
+ *
+ * @return array
+ *   An associative array containing the search results. The following keys
+ *   are standardized:
+ *   - 'result count': The overall number of results for this query, without
+ *     range restrictions. Might be approximated, for large numbers.
+ *   - results: An array of results, ordered as specified. The array keys are
+ *     the items' IDs, values are arrays containing the following keys:
+ *     - id: The item's ID.
+ *     - score: A float measuring how well the item fits the search.
+ *     - entity (optional): If set, the fully loaded entity. This field should
+ *       always be used by modules using search results, to avoid duplicate
+ *       entity loads.
+ *     - excerpt (optional): If set, an HTML text containing highlighted
+ *       portions of the fulltext that match the query.
+ *   - warnings: A numeric array of translated warning messages that may be
+ *     displayed to the user.
+ *   - ignored: A numeric array of search keys that were ignored for this
+ *     search (e.g., because of being too short or stop words).
+ *   - performance: An associative array with the time taken (as floats, in
+ *     seconds) for specific parts of the search execution:
+ *     - complete: The complete runtime of the query.
+ *     - hooks: Hook invocations and other server-independent processing.
+ *     - preprocessing: Preprocessing of the service class.
+ *     - execution: The actual query to the search server, in whatever form.
+ *     - postprocessing: Preparing the results for returning.
+ *   Additional metadata may be returned in other keys. Only 'result count'
+ *   and 'results' always have to be set, all other entries are optional.
+ */
+function search_api_ranges_minmax_execute(SearchApiQuery $query) {
+  $start = microtime(TRUE);
+
+  // Add filter for languages.
+  $languages = $query->getOption('languages');
+  if (isset($languages)) {
+    $query->addLanguages($languages);
+  }
+
+  // Add fulltext fields, unless set
+  if ($query->getFields() === NULL) {
+    $query->fields($query->getIndex()->getFulltextFields());
+  }
+
+  // Preprocess query.
+  $query->getIndex()->preprocessSearchQuery($query);
+
+  $pre_search = microtime(TRUE);
+
+  // Execute query.
+  $response = $query->getIndex()->server()->search($query);
+
+  $post_search = microtime(TRUE);
+
+  // Postprocess results.
+  $query->getIndex()->postprocessSearchResults($response, $query);
+
+  $end = microtime(TRUE);
+  $response['performance']['complete'] = $end - $start;
+  $response['performance']['hooks'] = $response['performance']['complete'] - ($post_search - $pre_search);
+
+  return $response;
+} 
+
+/**
  * Generates the jQuery range slider form for range facet blocks
  */
-function search_api_ranges_block_view_form($form, &$form_state, $delta, $keys) {
+function search_api_ranges_block_view_form($form, &$form_state, $delta, $field_name, $keys) {
   $params = drupal_get_query_parameters();
   $range_blocks = search_api_ranges_get_blocks();
   $index_id = $range_blocks[$delta]['index_id'];
   $field = $range_blocks[$delta]['field'];
   
-  $min_value = search_api_ranges_minmax_execute($field, 'ASC', $params, $index_id, $keys);
-  $max_value = search_api_ranges_minmax_execute($field, 'DESC', $params, $index_id, $keys);
+  $min_value = search_api_ranges_minmax($field, 'ASC', $params, $index_id, $keys);
+  $max_value = search_api_ranges_minmax($field, 'DESC', $params, $index_id, $keys);
   
   // get from and to values from user, respecting min/max values
   if (isset($params['range'][$field])) {
@@ -331,7 +391,7 @@ function search_api_ranges_block_view_form($form, &$form_state, $delta, $keys) {
   $form = '';
   // @todo incorporate currency codes (global setting from block config?)
   $form['text-range'] = array(
-    '#markup' => '<p class="text-range">' . t('Prices range from !from to !to', array('!from' => $min_value, '!to' => $max_value)) . '</p>',
+    '#markup' => '<p class="text-range">' . t('!field_name ranges from !from to !to', array('!field_name' => $field_name, '!from' => $min_value, '!to' => $max_value)) . '</p>',
   );
   $form['range-from'] = array(
     '#type' => 'textfield',
@@ -426,14 +486,14 @@ function search_api_ranges_search_api_query_alter(SearchApiQuery $query) {
     }
   }
 
-  // Add active range facet filters.
+  // Add active range facet filters. Skip for min/max queries.
   $params = drupal_get_query_parameters();
   if (isset($params['range'])) {
     foreach ($params['range'] as $key => $range) {
       $range = explode(' TO ', substr($range, 1, -1));
       $query->condition($key, $range[0], '>=');
       $query->condition($key, $range[1], '<=');      
-    }
+    } 
   }
 }
 
