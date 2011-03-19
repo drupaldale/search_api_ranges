@@ -276,7 +276,7 @@ function search_api_ranges_minmax($field, $order, $params, $index_id, $keys) {
   $options['limit'] = 1;
   if (isset($params['filter'])) {
     $options['filters'] = $params['filter'];  
-  }
+  }  
   $options['search id'] = 'search_api_ranges:minmax/' . $order;
   
   // helps avoid running the ranges query alter
@@ -291,11 +291,11 @@ function search_api_ranges_minmax($field, $order, $params, $index_id, $keys) {
     return;
   }
   foreach ($results['results'] as $result) {
-    $item = item_load($result['id'], $index->entity_type);  
+    $entity = entity_load($index->entity_type, array($result['id']));  
   }
   
   // we have to round because jQuery slider cannot handle decimals
-  return round($item->$field);
+  return round($entity[$result['id']]->$field);
 }
 
 /**

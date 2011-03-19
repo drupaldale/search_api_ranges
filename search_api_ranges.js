@@ -1,9 +1,9 @@
 (function($){
   Drupal.behaviors.search_api_ranges = {
     attach: function(context, settings){
-      
-      var submitTimeout = '';
     
+      var submitTimeout = '';
+      
       $('div.search-api-ranges-widget').each(function(){
         var widget = $(this);
         var slider = widget.find('div.range-slider');
@@ -14,9 +14,19 @@
         
         slider.slider({
           range: true,
+          animate: true,
           min: parseInt(rangeMin.val()),
           max: parseInt(rangeMax.val()),
           values: [parseInt(rangeFrom.val()), parseInt(rangeTo.val())],
+          // for clicking on the bar
+          change: function(event, ui){
+            clearTimeout(submitTimeout);
+            var values = slider.slider("option", "values");
+            widget.find('input[name=range-from]').val(values[0]);
+            widget.find('input[name=range-to]').val(values[1]);
+            delaySubmit(widget);
+          },
+          // for manually sliding
           slide: function(event, ui){
             clearTimeout(submitTimeout);
             var values = slider.slider("option", "values");
@@ -52,6 +62,6 @@
           widget.find('form').submit();
         }, 1500);
       };
-    }
+          }
   };
 })(jQuery);
