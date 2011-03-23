@@ -450,7 +450,10 @@ function search_api_ranges_minmax_execute(SearchApiQuery $query) {
  */
 function search_api_ranges_block_view_form($form, &$form_state, $values) {
   $form = '';
-  $target_params = drupal_get_query_parameters($_GET, array('q', 'range'));
+  
+  // construct ajax target params
+  $target_params = drupal_get_query_parameters($_GET, array('q'));
+  unset($target_params['filter'][$values['field']]);
   
   // @todo incorporate currency codes (global setting from block config?)
   $form['text-range'] = array(
