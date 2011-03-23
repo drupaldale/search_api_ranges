@@ -60,6 +60,8 @@ class SearchApiRange extends Entity {
       }
     }
     $this->options += array(
+      'field_prefix'      => '',
+      'field_suffix'      => '',
       'default_true'      => TRUE,
       'ids_list'          => array(),
       'type'              => '',
