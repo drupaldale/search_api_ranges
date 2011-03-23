@@ -196,6 +196,7 @@ function search_api_ranges_block_view($delta = '') {
 
   // Since we already computed the active range facets when altering the search queries, we don't do it again here.
   $search_ids = drupal_static('search_api_ranges_search_api_query_alter', array());
+  
   if (empty($search_ids[$delta]) || !search_api_current_search($search_ids[$delta])) {
     return;
   }
@@ -210,13 +211,14 @@ function search_api_ranges_block_view($delta = '') {
   
   $min_value = search_api_ranges_minmax($field, 'ASC', $params, $index_id, $query->getKeys());
   $max_value = search_api_ranges_minmax($field, 'DESC', $params, $index_id, $query->getKeys());
-  
+
   if (empty($min_value) && empty($max_value)) {
     return;
   }
   
-  if (isset($params['range'][$field])) {
-    $values = explode(' TO ', substr($params['range'][$range_blocks[$delta]['field']], 1, -1));
+  // @todo allow cloned blocks, and account for [0], [1] etc.
+  if (isset($params['filter'][$field][0])) {
+    $values = explode(' ', substr($params['filter'][$range_blocks[$delta]['field']][0], 1, -1));
     $from_value = round($values[0]);
     $to_value = round($values[1]);
   }
@@ -236,10 +238,10 @@ function search_api_ranges_block_view($delta = '') {
   // Get active range facet filters for this query.
   $num = count(search_api_current_search());
   $params = drupal_get_query_parameters($_GET, array('q', 'page'));
-  $filter_name = $num > 1 ? 'range_' . $search_id : 'range';
+  $filter_name = $num > 1 ? 'filter_' . $search_id : 'filter';
   $filters = isset($params[$filter_name]) ? $params[$filter_name] : array();
-  if (!$filters && $num == 1 && isset($params['range_' . $search_id])) {
-    $filter_name = 'range_' . $search_id;
+  if (!$filters && $num == 1 && isset($params['filter_' . $search_id])) {
+    $filter_name = 'filter_' . $search_id;
     $filters = $params[$filter_name];
   }
   $filters = empty($filters[$range->field]) ? array() : $filters[$range->field];
@@ -314,23 +316,57 @@ function search_api_ranges_get_blocks($reset = FALSE) {
  * 
  * @todo include the keys
  */
-function search_api_ranges_minmax($field, $order, $params, $index_id, $keys) {
+function search_api_ranges_minmax($range_field, $order, $params, $index_id, $keys) {
   $index = search_api_index_load($index_id);
   
   $options = array();
   $options['limit'] = 1;
-  if (isset($params['filter'])) {
-    $options['filters'] = $params['filter'];  
-  }  
   $options['search id'] = 'search_api_ranges:minmax/' . $order;
-  
   // helps avoid running the ranges query alter
   $options['search_api_ranges skip'] = 1;
   
   $query = search_api_query($index_id, $options);
-  $query->sort($field, $order);
+  $query->sort($range_field, $order);
   $query->keys($keys);
 
+  // Add active facet filters.
+  $filter_array = search_api_facets_get_filters($query);
+  
+  // for min/max queries: unset self
+  unset($filter_array[$range_field]);
+  
+  foreach ($filter_array as $field => $filters) {
+    foreach ($filters as $filter) {
+      if ($filter == '!') {
+        $query->condition($field, NULL);
+      }
+      elseif ($filter[0] == '"') {
+        $filter = substr($filter, 1, -1);
+        if (strlen($filter)) {
+          $query->condition($field, $filter);
+        }
+      }
+      else {
+        $lowtype = $filter[0];
+        $uptype = $filter[strlen($filter) - 1];
+        $filter = substr($filter, 1, -1);
+        list($lower, $upper) = explode(' ', $filter, 2);
+        if ($lower == '*' && $upper == '*') {
+          $query->condition($field, NULL, '<>');
+        }
+        else {
+          if ($lower != '*') {
+            $query->condition($field, $lower, $lowtype == '[' ? '>=' : '>');
+          }
+          if ($upper != '*') {
+            $query->condition($field, $upper, $uptype == ']' ? '<=' : '<');
+          }
+        }
+      }
+    }
+  }
+
+  // query results
   $results = search_api_ranges_minmax_execute($query);
   if(!$results['results']) {
     return;
@@ -341,7 +377,7 @@ function search_api_ranges_minmax($field, $order, $params, $index_id, $keys) {
   }
   
   // we have to round because jQuery slider cannot handle decimals
-  return round($wrapper->get($field)->value());
+  return round($wrapper->get($range_field)->value());
 }
 
 /**
@@ -475,9 +511,8 @@ function search_api_ranges_block_view_form_submit($form, &$form_state) {
   $values = $form_state['values'];
   $params = drupal_get_query_parameters($_GET, array('q', 'page'));
   
-  $params['range'] = array(
-    $values['range-field'] => '"' . $values['range-from'] . ' TO ' . $values['range-to'] . '"',
-  );
+  // @todo: allow for cloned blocks and multiple ranges for same filter
+  $params['filter'][$values['range-field']][0] = '[' . $values['range-from'] . ' ' . $values['range-to'] . ']';
   
   drupal_goto($_GET['q'], array('query' => array($params)));
 }

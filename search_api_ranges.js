@@ -20,14 +20,12 @@
           values: [parseInt(rangeFrom.val()), parseInt(rangeTo.val())],
           // on change: when clicking somewhere in the bar
           change: function(event, ui){
-            clearTimeout(submitTimeout);
             var values = slider.slider("option", "values");
             widget.find('input[name=range-from]').val(values[0]);
             widget.find('input[name=range-to]').val(values[1]);
           },
           // on slide: when sliding with the controls
           slide: function(event, ui){
-            clearTimeout(submitTimeout);
             var values = slider.slider("option", "values");
             widget.find('input[name=range-from]').val(values[0]);
             widget.find('input[name=range-to]').val(values[1]);

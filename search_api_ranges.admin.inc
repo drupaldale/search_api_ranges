@@ -50,7 +50,7 @@ function search_api_ranges_index_select(array $form, array &$form_state, SearchA
       t('Field'),
       t('Type'),
       t('Name'),
-      t('Clone block'),
+      // t('Clone block'),
       t('Delete data'),
     ),
     '#table_empty' => t('There are currently no fields for which range facets can be displayed.'),
@@ -75,7 +75,7 @@ function search_api_ranges_index_select(array $form, array &$form_state, SearchA
         t('Field'),
         t('Type'),
         t('Name'),
-        t('Clone block'),
+        // t('Clone block'),
         t('Delete data'),
       );
       $empty_status = ' ';
@@ -125,10 +125,13 @@ function search_api_ranges_index_select(array $form, array &$form_state, SearchA
           '#maxlength' => max(strlen($range->name), 80),
           '#default_value' => $range->name,
         );
+        /* @todo before allowing cloning range blocks,
+         * must rework the range filter logic
         $form['ranges'][$k]['clone'] = array(
           '#type' => 'checkbox',
           '#default_value' => FALSE,
         );
+        */
         if (($range->enabled && $range->status != ENTITY_OVERRIDDEN) || empty($range->delta) || !($range->status & ENTITY_CUSTOM)) {
           $form['ranges'][$k]['delete'] = array(
             '#markup' => '&nbsp;',
