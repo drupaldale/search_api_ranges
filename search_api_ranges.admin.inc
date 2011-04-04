@@ -50,7 +50,6 @@ function search_api_ranges_index_select(array $form, array &$form_state, SearchA
       t('Field'),
       t('Type'),
       t('Name'),
-      // t('Clone block'),
       t('Delete data'),
     ),
     '#table_empty' => t('There are currently no fields for which range facets can be displayed.'),
@@ -75,7 +74,6 @@ function search_api_ranges_index_select(array $form, array &$form_state, SearchA
         t('Field'),
         t('Type'),
         t('Name'),
-        // t('Clone block'),
         t('Delete data'),
       );
       $empty_status = ' ';
@@ -125,13 +123,6 @@ function search_api_ranges_index_select(array $form, array &$form_state, SearchA
           '#maxlength' => max(strlen($range->name), 80),
           '#default_value' => $range->name,
         );
-        /* @todo before allowing cloning range blocks,
-         * must rework the range filter logic
-        $form['ranges'][$k]['clone'] = array(
-          '#type' => 'checkbox',
-          '#default_value' => FALSE,
-        );
-        */
         if (($range->enabled && $range->status != ENTITY_OVERRIDDEN) || empty($range->delta) || !($range->status & ENTITY_CUSTOM)) {
           $form['ranges'][$k]['delete'] = array(
             '#markup' => '&nbsp;',
@@ -189,7 +180,6 @@ function search_api_ranges_index_select_validate(array $form, array &$form_state
 function search_api_ranges_index_select_submit(array $form, array &$form_state) {
   $index = $form_state['index'];
   $count = 0;
-  $clone_count = 0;
   $delete_count = 0;
   $reset_count = 0;
 
@@ -201,7 +191,7 @@ function search_api_ranges_index_select_submit(array $form, array &$form_state) 
       // Field is not stored, what use would cloning or deleting be?
       continue;
     }
-    if ((empty($v['enabled']) && empty($v['clone'])) || $v['range']->status == ENTITY_OVERRIDDEN) {
+    if ((empty($v['enabled'])) || $v['range']->status == ENTITY_OVERRIDDEN) {
       // This is the only case in which a "delete" makes sense.
       if (!empty($v['delete'])) {
         $v['range']->delete();
@@ -218,19 +208,8 @@ function search_api_ranges_index_select_submit(array $form, array &$form_state) 
       $f->save();
       ++$count;
     }
-    if ($v['clone']) {
-      $f = $v['range'];
-      unset($f->id, $f->delta);
-      $f->name = t('!index: !field #!num',
-          array('!field' => $index->options['fields'][$f->field]['name'], '!index' => $index->name, '!num' => $c + 1));
-      $f->save();
-      ++$clone_count;
-    }
   }
 
-  if ($clone_count) {
-    drupal_set_message(format_plural($clone_count, '1 range facet block was successfully cloned.', '@count range facet blocks were successfully cloned.'));
-  }
   if ($delete_count) {
     drupal_set_message(format_plural($delete_count, 'The settings of 1 range facet block were successfully deleted.', 'The settings of @count range facet blocks were successfully deleted.'));
   }
@@ -240,7 +219,7 @@ function search_api_ranges_index_select_submit(array $form, array &$form_state) 
   if ($reset_count) {
     drupal_set_message(format_plural($reset_count, '1 range facet configuration was reset.', '@count range facet configurations were reset.'));
   }
-  if (!($count + $clone_count + $delete_count + $reset_count)) {
+  if (!($count + $delete_count + $reset_count)) {
     drupal_set_message(t('No values were changed.'));
   }
 }
