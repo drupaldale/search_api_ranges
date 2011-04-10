@@ -102,7 +102,7 @@ function search_api_ranges_permission() {
  * Implements hook_block_info().
  */
 function search_api_ranges_block_info() {
-  $blocks = '';
+  $blocks = array();
   
   $ranges = search_api_range_load_multiple(FALSE, array('enabled' => 1));
   foreach ($ranges as $range) {
