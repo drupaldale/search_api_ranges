@@ -536,7 +536,7 @@ function search_api_ranges_search_api_query_alter(SearchApiQuery $query) {
   
   // Add range facet fields to query.
   $index_id = $query->getIndex()->machine_name;
-  $ranges = search_api_range_load_multiple(search_api_ranges_by_block_status(), array('index_id' => $index_id));
+  $ranges = search_api_range_load_multiple(FALSE, array('index_id' => $index_id));
   $fields = array();
   
   // Save the active range facets for later retrieval when generating blocks.
@@ -709,32 +709,6 @@ function search_api_range_load($id, $reset = FALSE) {
  */
 function search_api_range_load_multiple($ids = array(), $conditions = array(), $reset = FALSE) {
   return entity_load('search_api_range', $ids, $conditions, $reset);
-}
-
-/**
- * Return the deltas of range facet blocks with the specified status.
- *
- * @param $status
- *   The {block}.status to search for (1 for enabled, 0 for disabled).
- * @param $reset
- *   Whether to reset the internal cache.
- *
- * @return array
- *   The deltas of all search range facet blocks with the specified status.
- */
-function search_api_ranges_by_block_status($status = 1, $reset = FALSE) {
-  $cache = &drupal_static(__FUNCTION__, array());
-  if (!isset($cache[$status]) || $reset) {
-    global $theme;
-    $cache[$status] = db_select('block', 'b')
-    ->fields('b', array('delta'))
-    ->condition('module', 'search_api_ranges')
-    ->condition('theme', $theme)
-    ->condition('status', $status)
-    ->execute()
-    ->fetchCol();
-  }
-  return $cache[$status];
 }
 
 /**
