@@ -376,11 +376,14 @@ function search_api_ranges_minmax($range_field, $order, $params, $index_id, $key
   }
   foreach ($results['results'] as $result) {
     $entity = entity_load($index->entity_type, array($result['id']));
-    $wrapper = entity_metadata_wrapper($index->entity_type, $entity[$result['id']]);  
+    $index->dataAlter($entity);
+    $wrapper = $index->entityWrapper($entity[$result['id']]);
   }
   
   // we have to round because jQuery slider cannot handle decimals
-  return round($wrapper->get($range_field)->value());
+  $fields[$range_field]['type'] = 'integer';
+  $fields = search_api_extract_fields($wrapper, $fields);
+  return round($fields[$range_field]['value']);
 }
 
 /**
