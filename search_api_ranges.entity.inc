@@ -74,7 +74,7 @@ class SearchApiRange extends Entity {
       $this->options = serialize($this->options);
     }
   }
-  
+
   /**
    * Saves this range facet.
    * If $this->delta is empty, it will be computed automatically. In this case,
@@ -83,6 +83,7 @@ class SearchApiRange extends Entity {
    */
   public function save() {
     if (empty($this->delta)) {
+
       // The range facet should be newly created if save() is invoked with $this->delta being empty.
       $this->id = NULL;
 
@@ -101,5 +102,4 @@ class SearchApiRange extends Entity {
 
     return parent::save();
   }
-
 }
