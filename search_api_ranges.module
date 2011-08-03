@@ -209,6 +209,9 @@ function search_api_ranges_block_view($delta = '') {
   // calculate slider's from, to, min and max values
   $params = drupal_get_query_parameters();
   $range_blocks = search_api_ranges_get_blocks();
+  if (empty($range_blocks[$delta])) {
+    return;
+  }
   $index_id = $range_blocks[$delta]['index_id'];
   $field = $range_blocks[$delta]['field'];
   
@@ -539,7 +542,7 @@ function search_api_ranges_search_api_query_alter(SearchApiQuery $query) {
   
   // Add range facet fields to query.
   $index_id = $query->getIndex()->machine_name;
-  $ranges = search_api_range_load_multiple(FALSE, array('index_id' => $index_id));
+  $ranges = search_api_range_load_multiple(FALSE, array('index_id' => $index_id, 'enabled' => 1));
   $fields = array();
   
   // Save the active range facets for later retrieval when generating blocks.
