@@ -262,7 +262,7 @@ function search_api_ranges_block_view($delta = '') {
   $values = isset($options['options']) ? $options['options'] : array();
 
   $theme_suffix  = '';
-  $theme_suffix .= '__' . preg_replace('/\W+/', '_', $query->getIndex()->entity_type);
+  $theme_suffix .= '__' . preg_replace('/\W+/', '_', $query->getIndex()->item_type);
   $theme_suffix .= '__' . preg_replace('/\W+/', '_', $range->field);
   $theme_suffix .= '__' . preg_replace('/\W+/', '_', $range->delta);
   $theme = array(
@@ -378,7 +378,7 @@ function search_api_ranges_minmax($range_field, $order, $params, $index_id, $key
     return;
   }
   foreach ($results['results'] as $result) {
-    $entity = entity_load($index->entity_type, array($result['id']));
+    $entity = entity_load($index->item_type, array($result['id']));
     $index->dataAlter($entity);
     $wrapper = $index->entityWrapper($entity[$result['id']]);
   }
