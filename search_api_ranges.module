@@ -71,7 +71,7 @@ function search_api_ranges_theme() {
 function search_api_ranges_entity_info() {
   $info['search_api_range'] = array(
     'label' => t('Search range facet'),
-    'controller class' => 'EntityAPIController',
+    'controller class' => 'EntityAPIControllerExportable',
     'entity class' => 'SearchApiRange',
     'base table' => 'search_api_range',
     'uri callback' => 'search_api_range_url',
@@ -103,7 +103,7 @@ function search_api_ranges_permission() {
  */
 function search_api_ranges_block_info() {
   $blocks = array();
-  
+
   $ranges = search_api_range_load_multiple(FALSE, array('enabled' => 1));
   foreach ($ranges as $range) {
     $blocks[$range->delta]['info'] = $range->name . ' (' . t('Range filter') . ')';
@@ -112,7 +112,7 @@ function search_api_ranges_block_info() {
     // Use this so range facet blocks are initially grouped together.
     $blocks[$range->delta]['weight'] = 5;
   }
-  
+
   return $blocks;
 }
 
@@ -149,7 +149,7 @@ function search_api_ranges_block_configure($delta = '') {
     '#description' => t('Suffix to add after the field value, for example: Pcs.'),
     '#default_value' => $options['field_suffix'],
   );
-  
+
   $search_ids = variable_get('search_api_ranges_search_ids', array());
   if (empty($search_ids[$index->machine_name]) || count($search_ids[$index->machine_name]) <= 1) {
     $form['default_true'] = array(
@@ -199,7 +199,7 @@ function search_api_ranges_block_view($delta = '') {
 
   // Since we already computed the active range facets when altering the search queries, we don't do it again here.
   $search_ids = drupal_static('search_api_ranges_search_api_query_alter', array());
-  
+
   if (empty($search_ids[$delta]) || !search_api_current_search($search_ids[$delta])) {
     return;
   }
@@ -214,14 +214,14 @@ function search_api_ranges_block_view($delta = '') {
   }
   $index_id = $range_blocks[$delta]['index_id'];
   $field = $range_blocks[$delta]['field'];
-  
+
   $min_value = search_api_ranges_minmax($field, 'ASC', $params, $index_id, $query->getKeys());
   $max_value = search_api_ranges_minmax($field, 'DESC', $params, $index_id, $query->getKeys());
 
   if (empty($min_value) && empty($max_value)) {
     return;
   }
-  
+
   // @todo allow cloned blocks, and account for [0], [1] etc.
   if (isset($params['filter'][$field][0])) {
     $values = explode(' ', substr($params['filter'][$range_blocks[$delta]['field']][0], 1, -1));
@@ -234,7 +234,7 @@ function search_api_ranges_block_view($delta = '') {
   if (!isset($to_value) || $max_value < $to_value) {
     $to_value = $max_value;
   }
-  
+
   $range = search_api_range_load($delta);
   if (!$range->enabled) {
     return;
@@ -267,9 +267,9 @@ function search_api_ranges_block_view($delta = '') {
   $theme_suffix .= '__' . preg_replace('/\W+/', '_', $range->delta);
   $theme = array(
     '#theme'  => 'search_api_ranges_slider' . $theme_suffix,
-    '#slider' => '', 
+    '#slider' => '',
   );
-  
+
   $values = array(
     'delta' => $delta,
     'field' => $field,
@@ -281,7 +281,7 @@ function search_api_ranges_block_view($delta = '') {
     'prefix' => $range->options['field_prefix'],
     'suffix' => $range->options['field_suffix'],
   );
-    
+
   $theme['#slider'] = drupal_get_form('search_api_ranges_block_view_form', $values);
 
   return array(
@@ -292,7 +292,7 @@ function search_api_ranges_block_view($delta = '') {
 
 /**
  * Get a list of sorts field names for the current search index id
- * 
+ *
  * @return a cached query object
  */
 function search_api_ranges_get_blocks($reset = FALSE) {
@@ -302,7 +302,7 @@ function search_api_ranges_get_blocks($reset = FALSE) {
     ->fields('s', array('delta', 'index_id', 'field'))
     ->condition('enabled', 1)
     ->execute();
-    
+
     $data = array();
     while ($row = $query->fetch()) {
       $data[$row->delta] = array(
@@ -310,7 +310,7 @@ function search_api_ranges_get_blocks($reset = FALSE) {
         'index_id' => $row->index_id,
       );
     }
-    
+
     $cache['search_api_range_blocks'] = $data;
   }
   return $cache['search_api_range_blocks'];
@@ -319,28 +319,28 @@ function search_api_ranges_get_blocks($reset = FALSE) {
 /**
  * Breakout for search_api_ranges_block_view_form()
  * We find the lowest/highest single value given the active facets
- * 
+ *
  * @todo include the keys
  */
 function search_api_ranges_minmax($range_field, $order, $params, $index_id, $keys) {
   $index = search_api_index_load($index_id);
-  
+
   $options = array();
   $options['limit'] = 1;
   $options['search id'] = 'search_api_ranges:minmax/' . $order;
   // helps avoid running the ranges query alter
   $options['search_api_ranges skip'] = 1;
-  
+
   $query = search_api_query($index_id, $options);
   $query->sort($range_field, $order);
   $query->keys($keys);
 
   // Add active facet filters.
   $filter_array = search_api_facets_get_filters($query);
-  
+
   // for min/max queries: unset self
   unset($filter_array[$range_field]);
-  
+
   foreach ($filter_array as $field => $filters) {
     foreach ($filters as $filter) {
       if ($filter == '!') {
@@ -382,7 +382,7 @@ function search_api_ranges_minmax($range_field, $order, $params, $index_id, $key
     $index->dataAlter($entity);
     $wrapper = $index->entityWrapper($entity[$result['id']]);
   }
-  
+
   // we have to round because jQuery slider cannot handle decimals
   $fields[$range_field]['type'] = 'integer';
   $fields = search_api_extract_fields($wrapper, $fields);
@@ -452,28 +452,28 @@ function search_api_ranges_minmax_execute(SearchApiQuery $query) {
   $response['performance']['hooks'] = $response['performance']['complete'] - ($post_search - $pre_search);
 
   return $response;
-} 
+}
 
 /**
  * Generates the jQuery range slider form for range facet blocks
  */
 function search_api_ranges_block_view_form($form, &$form_state, $values) {
   $form = '';
-  
+
   // construct ajax target params
   $target_params = drupal_get_query_parameters($_GET, array('q'));
   unset($target_params['filter'][$values['field']]);
-  
+
   // construct form
   $form['text-range'] = array(
-    '#markup' => '<p class="text-range">' . 
+    '#markup' => '<p class="text-range">' .
       t('!field_name ranges from !prefix@from!suffix to !prefix@to!suffix', array(
-        '!field_name' => $values['name'], 
-        '@from' => $values['min'], 
+        '!field_name' => $values['name'],
+        '@from' => $values['min'],
         '@to' => $values['max'],
         '!prefix' => $values['prefix'],
         '!suffix' => $values['suffix'],
-      )) 
+      ))
       . '</p>',
   );
   $form['range-from'] = array(
@@ -511,24 +511,24 @@ function search_api_ranges_block_view_form($form, &$form_state, $values) {
     '#type' => 'submit',
     '#value' => t('Go'),
   );
-    
+
   // add jQuery UI
   drupal_add_library('system', 'ui.slider');
   drupal_add_js(drupal_get_path('module', 'search_api_ranges') . '/search_api_ranges.js');
-    
+
   return $form;
 }
 
 /**
  * Handle slider block submit
  */
-function search_api_ranges_block_view_form_submit($form, &$form_state) {  
+function search_api_ranges_block_view_form_submit($form, &$form_state) {
   $values = $form_state['values'];
   $params = drupal_get_query_parameters($_GET, array('q', 'page'));
-  
+
   // @todo: allow for cloned blocks and multiple ranges for same filter
   $params['filter'][$form_state['input']['range-field']][0] = '[' . $values['range-from'] . ' ' . $values['range-to'] . ']';
-  
+
   drupal_goto($_GET['q'], array('query' => array($params)));
 }
 
@@ -539,12 +539,12 @@ function search_api_ranges_search_api_query_alter(SearchApiQuery $query) {
   if (!user_access('use search_api_ranges')) {
     return;
   }
-  
+
   // Add range facet fields to query.
   $index_id = $query->getIndex()->machine_name;
   $ranges = search_api_range_load_multiple(FALSE, array('index_id' => $index_id, 'enabled' => 1));
   $fields = array();
-  
+
   // Save the active range facets for later retrieval when generating blocks.
   $active = &drupal_static(__FUNCTION__, array());
   $search_id = $query->getOption('search id');
@@ -581,8 +581,8 @@ function search_api_ranges_search_api_query_alter(SearchApiQuery $query) {
     foreach ($params['range'] as $key => $range) {
       $range = explode(' TO ', substr($range, 1, -1));
       $query->condition($key, $range[0], '>=');
-      $query->condition($key, $range[1], '<=');      
-    } 
+      $query->condition($key, $range[1], '<=');
+    }
   }
 }
 
@@ -688,7 +688,7 @@ function search_api_ranges_flush_caches() {
  *   Whether to reset the internal entity_load cache.
  *
  * @return SearchApiRange
- *   Either the range facet with the specified ID or delta, or FALSE, if no 
+ *   Either the range facet with the specified ID or delta, or FALSE, if no
  *   such range facet exists.
  */
 function search_api_range_load($id, $reset = FALSE) {
