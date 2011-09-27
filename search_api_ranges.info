@@ -1,5 +1,5 @@
 name = Search ranges
-description = "Provides facet blocks with a jQuery min/max slider (for numerical indexes only)."
+description = "Provides range widgets and a min/max slider for Search API."
 dependencies[] = facetapi
 dependencies[] = search_api
 dependencies[] = search_api_facetapi
