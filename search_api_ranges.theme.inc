@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Theme functions for Min/Max UI Slider widget
+ */
+
+/**
  * Theme a jQuery slider.
  *
  * @param array $variables
