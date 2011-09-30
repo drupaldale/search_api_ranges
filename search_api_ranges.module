@@ -75,8 +75,10 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
   // Otherwise our min/max would always equal user input
   $filters = &$query->getFilter()->getFilters();
   foreach ($filters as $key => $filter) {
-    if ($filter[0] == $variables['range_field']) {
-      unset($filters[$key]);
+    if (is_array($filter)) {
+      if ($filter[0] == $variables['range_field']) {
+        unset($filters[$key]);
+      }      
     }
   }
 
