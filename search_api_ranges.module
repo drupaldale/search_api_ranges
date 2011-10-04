@@ -75,6 +75,7 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
   // Otherwise our min/max would always equal user input
   $filters = &$query->getFilter()->getFilters();
   foreach ($filters as $key => $filter) {
+    // CHeck for array, old style filters are objects which we can skip
     if (is_array($filter)) {
       if ($filter[0] == $variables['range_field']) {
         unset($filters[$key]);
@@ -95,11 +96,13 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
   $fields[$variables['range_field']]['type'] = 'integer';
   $fields = search_api_extract_fields($wrapper, $fields);
 
-  // We have to round because jQuery slider cannot handle decimals
+  // For max queries, pad the result +1 to avoid empty selections 
   $return = $fields[$variables['range_field']]['value'];
   if ($order == 'DESC') {
     ++$return;
   }
+  
+  // We have to round because jQuery slider cannot handle decimals
   return round($return);
 }
 
@@ -180,13 +183,13 @@ function search_api_ranges_block_view_form($form, &$form_state, $variables) {
   foreach ($variables['active_items'] as $key => $active_item) {
     if ($active_item['field alias'] == $variables['range_field']) {
       $pos = $active_item['pos'];
-      unset($params['f'][$active_item['pos']]);
+      unset($params['f'][$pos]);
     }
   }
 
   $form['pos'] = array(
     '#type' => 'hidden',
-    '#value' => isset($pos) ? $pos : '',
+    '#value' => isset($pos) ? $pos : -1,
   );
   $form['text-range'] = array(
     '#markup' => '<p class="text-range">' .
@@ -252,7 +255,7 @@ function search_api_ranges_block_view_form_submit($form, &$form_state) {
   // Prepare new range query (override existing key or add new)
   $query = $range_field . ':' . '[' . $values['range-from'] . ' TO ' . $values['range-to'] . ']';
   // @todo Facet API can have different '?f=' for query, how to detect?
-  if (!empty($pos)) {
+  if ($pos != -1) {
     $params['f'][$pos] = $query;
   }
   else {
