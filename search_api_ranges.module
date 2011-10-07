@@ -187,10 +187,6 @@ function search_api_ranges_block_view_form($form, &$form_state, $variables) {
     }
   }
 
-  $form['pos'] = array(
-    '#type' => 'hidden',
-    '#value' => isset($pos) ? $pos : -1,
-  );
   $form['text-range'] = array(
     '#markup' => '<p class="text-range">' .
       t('!field_name ranges from !prefix@from!suffix to !prefix@to!suffix', array(
@@ -250,11 +246,20 @@ function search_api_ranges_block_view_form_submit($form, &$form_state) {
 
   // Prepare params and existing filter $pos (if any)
   $params = drupal_get_query_parameters($_GET, array('q', 'page'));
-  $pos = $values['pos'];
 
   // Prepare new range query (override existing key or add new)
   $query = $range_field . ':' . '[' . $values['range-from'] . ' TO ' . $values['range-to'] . ']';
   // @todo Facet API can have different '?f=' for query, how to detect?
+  
+  $pos = -1;
+  if (isset($params['f'])) {
+    foreach ($params['f'] as $key => $param) {
+      if (strpos($param, $range_field . ':') !== FALSE) {
+        $pos = $key;
+      }  
+    }    
+  }
+
   if ($pos != -1) {
     $params['f'][$pos] = $query;
   }
