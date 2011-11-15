@@ -33,7 +33,7 @@
             var values = slider.slider("option", "values");
             widget.find('input[name=range-from]').val(values[0]);
             widget.find('input[name=range-to]').val(values[1]);
-          },
+          }
         });
 
         // submit once user stops changing values
