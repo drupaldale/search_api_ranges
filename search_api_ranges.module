@@ -37,6 +37,9 @@ function search_api_ranges_facetapi_widgets() {
       'handler' => array(
         'label' => t('Ranges: Min/Max UI Slider'),
         'class' => 'SearchApiRangesWidgetUISlider',
+        'query types' => array(
+          'term',
+        ),
       ),
     ),
   );
