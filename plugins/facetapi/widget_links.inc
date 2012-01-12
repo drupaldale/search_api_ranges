@@ -83,10 +83,6 @@ class SearchApiRangesWidgetUISlider extends FacetapiWidget {
   public function _buildUISliderForm() {
     $slider = array();
 
-    // Add jQuery UI Slider and Search API ranges JS
-    drupal_add_library('system', 'ui.slider');
-    drupal_add_js(drupal_get_path('module', 'search_api_ranges') . '/search_api_ranges.js');
-
     // Get Search API stuff
     $searcher = $this->facet->getAdapter()->getSearcher();
     $index_id = explode('@', $searcher);
