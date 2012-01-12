@@ -130,7 +130,7 @@ class SearchApiRangesWidgetUISlider extends FacetapiWidget {
     // Prepare the slider variables and return themed form
     // @see search-api-ranges-slider.tpl.php
     $variables = array(
-      'range_field' => $this->facet['field alias'],
+      'range_field' => rawurlencode($this->facet['field alias']),
       'name' => $this->settings->settings['name'],
       'prefix' => $this->settings->settings['prefix'],
       'suffix' => $this->settings->settings['suffix'],
