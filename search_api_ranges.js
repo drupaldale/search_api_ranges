@@ -42,6 +42,7 @@
           delaySubmit(widget);
         });
 
+        rangeFrom.numeric();
         rangeFrom.bind('keyup', function(){
           clearTimeout(submitTimeout);
           if (!isNaN(rangeFrom.val()) && rangeFrom.val() !== '') {
@@ -54,6 +55,7 @@
           }
         });
 
+        rangeTo.numeric();
         rangeTo.bind('keyup', function(){
           clearTimeout(submitTimeout);
           if (!isNaN(rangeTo.val()) && rangeTo.val() !== '') {
