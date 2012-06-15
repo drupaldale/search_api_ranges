@@ -84,6 +84,8 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
   $options['search id'] = 'search_api_ranges:' . $variables['range_field'] . ':minmax/' . $order;
   // For performance, we don't need to return any facets
   $options['search_api_facets'] = array();
+  // Do not take into account pager query
+  $options['offset'] = 0;
 
   // Remove current range field from the filters
   // Otherwise our min/max would always equal user input
