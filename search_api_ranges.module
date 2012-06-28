@@ -74,6 +74,15 @@ function search_api_ranges_facetapi_widgets() {
   */
 function search_api_ranges_minmax($variables, $order = 'ASC') {
   $query = $variables['query'];
+  $index = $variables['index'];
+  $order_lower = strtolower($order);
+  // Check if min or max values are indexed for multiple fields.
+  if (search_api_is_list_type($index->options['fields'][$variables['range_field']]['type'])) {
+    $field_name = str_replace(':', '_', $variables['range_field']) . '_' . $order_lower;
+    if (isset($index->options['fields'][$field_name])) {
+      $variables['range_field'] = $field_name;
+    }
+  }
 
   // Alter sort
   $sort = &$query->getSort();
@@ -285,4 +294,17 @@ function search_api_ranges_block_view_form_submit($form, &$form_state) {
   }
 
   drupal_goto($_GET['q'], array('query' => array($params)));
+}
+
+/**
+* Implements hook_search_api_alter_callback_info().
+*/
+function search_api_ranges_search_api_alter_callback_info() {
+  $callbacks['search_api_ranges_alter'] = array(
+    'name' => t('Search API ranges'),
+    'description' => t('Alters all passed item data completely randomly.'),
+    'class' => 'SearchApiRangesAlter',
+    'weight' => 100,
+  );
+  return $callbacks;
 }
