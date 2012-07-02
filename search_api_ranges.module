@@ -6,7 +6,7 @@
  * and provides UI Slider display widget for Facet API
  */
 
- /**
+/**
  * Implements hook_init().
  */
 function search_api_ranges_init() {
@@ -17,22 +17,18 @@ function search_api_ranges_init() {
   drupal_add_js(drupal_get_path('module', 'search_api_ranges') . '/jquery.numeric.js');
   drupal_add_js(drupal_get_path('module', 'search_api_ranges') . '/search_api_ranges.js');
 }
- 
+
 /**
  * Implements hook_theme().
  */
 function search_api_ranges_theme() {
   $themes = array(
     'search_api_ranges_slider' => array(
-      'variables' => array(
-        'slider' => '',
-      ),
+      'variables' => array('slider' => ''),
       'file' => 'search_api_ranges.theme.inc',
     ),
     'search_api_ranges_block_view_form' => array(
-      'arguments' => array(
-        'form' => NULL,
-      ),
+      'arguments' => array('form' => NULL),
       'template' => 'search-api-ranges-slider',
       'render element' => 'form',
     ),
@@ -44,21 +40,43 @@ function search_api_ranges_theme() {
  * Implements hook_facetapi_widgets().
  */
 function search_api_ranges_facetapi_widgets() {
-  return array(
-    'search_api_ranges_ui_slider' => array(
-      'handler' => array(
+  return array('search_api_ranges_ui_slider' => array('handler' => array(
         'label' => t('Ranges: Min/Max UI Slider'),
         'class' => 'SearchApiRangesWidgetUISlider',
-        'query types' => array(
-          'term',
-        ),
-      ),
-    ),
-  );
+        'query types' => array('term'),
+      ), ), );
 }
 
 /**
-  * We find the lowest/highest single value given the active facets
+ * Implements hook_facetapi_facet_info().
+ */
+function search_api_ranges_facetapi_facet_info_alter(array &$facet_info, array $searcher_info) {
+  $adapter = facetapi_adapter_load($searcher_info['name']);
+  foreach ($facet_info as &$facet) {
+    $facet_settings = $adapter->getFacet($facet)->getSettings('block');
+    if (isset($facet_settings->settings['widget']) && $facet_settings->settings['widget'] == 'search_api_ranges_ui_slider') {
+      $facet['facetapi pretty paths coder'] = 'default';
+      continue;
+    }
+  }
+}
+
+/**
+ * Implements hook_facetapi_facet_info().
+ */
+function search_api_ranges_facetapi_facet_info_alter(array &$facet_info, array $searcher_info) {
+  $adapter = facetapi_adapter_load($searcher_info['name']);
+  foreach ($facet_info as &$facet) {
+    $facet_settings = $adapter->getFacet($facet)->getSettings('block');
+    if (isset($facet_settings->settings['widget']) && $facet_settings->settings['widget'] == 'search_api_ranges_ui_slider') {
+      $facet['facetapi pretty paths coder'] = 'default';
+      continue;
+    }
+  }
+}
+
+/**
+ * We find the lowest/highest single value given the active facets
  *
  * @param array $variables
  *   An array with at least the following keys => values:
@@ -71,11 +89,12 @@ function search_api_ranges_facetapi_widgets() {
  * @return string
  *   The rounded integer value for min/max
  *
-  */
+ */
 function search_api_ranges_minmax($variables, $order = 'ASC') {
   $query = $variables['query'];
   $index = $variables['index'];
   $order_lower = strtolower($order);
+
   // Check if min or max values are indexed for multiple fields.
   if (search_api_is_list_type($index->options['fields'][$variables['range_field']]['type'])) {
     $field_name = str_replace(':', '_', $variables['range_field']) . '_' . $order_lower;
@@ -92,8 +111,10 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
   $options = &$query->getOptions();
   $options['limit'] = 1;
   $options['search id'] = 'search_api_ranges:' . $variables['range_field'] . ':minmax/' . $order;
+
   // For performance, we don't need to return any facets
   $options['search_api_facets'] = array();
+
   // Do not take into account pager query
   $options['offset'] = 0;
 
@@ -101,11 +122,12 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
   // Otherwise our min/max would always equal user input
   $filters = &$query->getFilter()->getFilters();
   foreach ($filters as $key => $filter) {
+
     // CHeck for array, old style filters are objects which we can skip
     if (is_array($filter)) {
       if ($filter[0] == $variables['range_field']) {
         unset($filters[$key]);
-      }      
+      }
     }
   }
 
@@ -122,12 +144,12 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
   $fields[$variables['range_field']]['type'] = 'integer';
   $fields = search_api_extract_fields($wrapper, $fields);
 
-  // For max queries, pad the result +1 to avoid empty selections 
+  // For max queries, pad the result +1 to avoid empty selections
   $return = $fields[$variables['range_field']]['value'];
   if ($order == 'DESC') {
     ++$return;
   }
-  
+
   // We have to round because jQuery slider cannot handle decimals
   return round($return);
 }
@@ -213,26 +235,20 @@ function search_api_ranges_block_view_form($form, &$form_state, $variables) {
     }
   }
 
-  $form['text-range'] = array(
-    '#markup' => '<p class="text-range">' .
-      t('!field_name ranges from !prefix@from!suffix to !prefix@to!suffix', array(
-        '!field_name' => $variables['name'],
-        '@from' => $variables['min'],
-        '@to' => $variables['max'],
-        '!prefix' => $variables['prefix'],
-        '!suffix' => $variables['suffix'],
-      ))
-      . '</p>',
-  );
+  $form['text-range'] = array('#markup' => '<p class="text-range">' . t('!field_name ranges from !prefix@from!suffix to !prefix@to!suffix', array(
+      '!field_name' => $variables['name'],
+      '@from' => $variables['min'],
+      '@to' => $variables['max'],
+      '!prefix' => $variables['prefix'],
+      '!suffix' => $variables['suffix'],
+    )) . '</p>', );
   $form['range-from'] = array(
     '#type' => 'textfield',
     '#title' => t('From'),
     '#size' => 10,
     '#default_value' => $variables['from'],
   );
-  $form['range-slider'] = array(
-    '#markup' => '<div class="range-slider"></div>',
-  );
+  $form['range-slider'] = array('#markup' => '<div class="range-slider"></div>', );
   $form['range-to'] = array(
     '#type' => 'textfield',
     '#title' => t('To'),
@@ -271,19 +287,22 @@ function search_api_ranges_block_view_form_submit($form, &$form_state) {
   $range_field = $form_state['input']['range-field'];
 
   // Prepare params and existing filter $pos (if any)
-  $params = drupal_get_query_parameters($_GET, array('q', 'page'));
+  $params = drupal_get_query_parameters($_GET, array(
+    'q',
+    'page'
+  ));
 
   // Prepare new range query (override existing key or add new)
   $query = $range_field . ':' . '[' . $values['range-from'] . ' TO ' . $values['range-to'] . ']';
   // @todo Facet API can have different '?f=' for query, how to detect?
-  
+
   $pos = -1;
   if (isset($params['f'])) {
     foreach ($params['f'] as $key => $param) {
       if (strpos($param, $range_field . ':') !== FALSE) {
         $pos = $key;
-      }  
-    }    
+      }
+    }
   }
 
   if ($pos != -1) {
@@ -297,8 +316,8 @@ function search_api_ranges_block_view_form_submit($form, &$form_state) {
 }
 
 /**
-* Implements hook_search_api_alter_callback_info().
-*/
+ * Implements hook_search_api_alter_callback_info().
+ */
 function search_api_ranges_search_api_alter_callback_info() {
   $callbacks['search_api_ranges_alter'] = array(
     'name' => t('Search API ranges'),

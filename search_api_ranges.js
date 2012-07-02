@@ -1,11 +1,8 @@
-(function($){
+(function($) {
   Drupal.behaviors.search_api_ranges = {
-    attach: function(context, settings){
-
+    attach: function(context, settings) {
       var submitTimeout = '';
-
-      $('div.search-api-ranges-widget').each(function(){
-
+      $('div.search-api-ranges-widget').each(function() {
         var widget = $(this);
         var slider = widget.find('div.range-slider');
         var rangeMin = widget.find('input[name=range-min]');
@@ -22,14 +19,14 @@
           values: [parseInt(rangeFrom.val()), parseInt(rangeTo.val())],
 
           // on change: when clicking somewhere in the bar
-          change: function(event, ui){
+          change: function(event, ui) {
             var values = slider.slider("option", "values");
             widget.find('input[name=range-from]').val(values[0]);
             widget.find('input[name=range-to]').val(values[1]);
           },
 
           // on slide: when sliding with the controls
-          slide: function(event, ui){
+          slide: function(event, ui) {
             var values = slider.slider("option", "values");
             widget.find('input[name=range-from]').val(values[0]);
             widget.find('input[name=range-to]').val(values[1]);
@@ -37,13 +34,13 @@
         });
 
         // submit once user stops changing values
-        slider.bind('slidestop', function(event, ui){
+        slider.bind('slidestop', function(event, ui) {
           clearTimeout(submitTimeout);
           delaySubmit(widget);
         });
 
         rangeFrom.numeric();
-        rangeFrom.bind('keyup', function(){
+        rangeFrom.bind('keyup', function() {
           clearTimeout(submitTimeout);
           if (!isNaN(rangeFrom.val()) && rangeFrom.val() !== '') {
             var value = parseInt(rangeFrom.val());
@@ -56,7 +53,7 @@
         });
 
         rangeTo.numeric();
-        rangeTo.bind('keyup', function(){
+        rangeTo.bind('keyup', function() {
           clearTimeout(submitTimeout);
           if (!isNaN(rangeTo.val()) && rangeTo.val() !== '') {
             var value = parseInt(rangeTo.val());
@@ -64,13 +61,13 @@
               value = parseInt(rangeFrom.val());
             }
             slider.slider("option", "values", [parseInt(rangeFrom.val()), value]);
-          delaySubmit(widget);
+            delaySubmit(widget);
           }
         });
       });
 
-      function delaySubmit(widget){
-        submitTimeout = setTimeout(function(){
+      function delaySubmit(widget) {
+        submitTimeout = setTimeout(function() {
           widget.find('form').submit();
         }, 1500);
       };

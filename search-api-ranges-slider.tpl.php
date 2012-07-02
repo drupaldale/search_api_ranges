@@ -11,6 +11,6 @@
 </div>
 <?php print drupal_render($form['submit']); ?>
 <?php
-  // render required hidden fields
-  print drupal_render_children($form);
+// render required hidden fields
+print drupal_render_children($form);
 ?>
