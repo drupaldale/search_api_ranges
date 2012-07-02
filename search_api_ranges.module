@@ -62,20 +62,6 @@ function search_api_ranges_facetapi_facet_info_alter(array &$facet_info, array $
 }
 
 /**
- * Implements hook_facetapi_facet_info().
- */
-function search_api_ranges_facetapi_facet_info_alter(array &$facet_info, array $searcher_info) {
-  $adapter = facetapi_adapter_load($searcher_info['name']);
-  foreach ($facet_info as &$facet) {
-    $facet_settings = $adapter->getFacet($facet)->getSettings('block');
-    if (isset($facet_settings->settings['widget']) && $facet_settings->settings['widget'] == 'search_api_ranges_ui_slider') {
-      $facet['facetapi pretty paths coder'] = 'default';
-      continue;
-    }
-  }
-}
-
-/**
  * We find the lowest/highest single value given the active facets
  *
  * @param array $variables
