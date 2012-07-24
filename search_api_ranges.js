@@ -1,8 +1,11 @@
 (function($) {
   Drupal.behaviors.search_api_ranges = {
     attach: function(context, settings) {
+
       var submitTimeout = '';
+
       $('div.search-api-ranges-widget').each(function() {
+
         var widget = $(this);
         var slider = widget.find('div.range-slider');
         var rangeMin = widget.find('input[name=range-min]');
@@ -67,9 +70,12 @@
       });
 
       function delaySubmit(widget) {
-        submitTimeout = setTimeout(function() {
-          widget.find('form').submit();
-        }, 1500);
+        var autoSubmitDelay = widget.find('input[name=delay]').val();
+        if (autoSubmitDelay != undefined && autoSubmitDelay != 0) {
+          submitTimeout = setTimeout(function() {
+            widget.find('form').submit();
+          }, autoSubmitDelay);
+        }
       };
     }
   };

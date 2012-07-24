@@ -248,6 +248,12 @@ function search_api_ranges_block_view_form($form, &$form_state, $variables) {
     '#type' => 'hidden',
     '#value' => $variables['range_field'],
   );
+  if ($variables['auto_submit_delay']) {
+    $form['delay'] = array(
+      '#type' => 'hidden',
+      '#value' => $variables['auto_submit_delay'],
+    );
+  }
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Go'),
