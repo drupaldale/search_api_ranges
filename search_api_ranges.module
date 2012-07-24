@@ -212,6 +212,13 @@ function search_api_ranges_block_view_form($form, &$form_state, $variables) {
     }
   }
 
+  // Get path or facetapi_pretty_paths
+  $path = $_GET['q'];
+  if (module_exists('facetapi_pretty_paths')) {
+    $path = urldecode(ltrim(parse_url(request_uri(), PHP_URL_PATH), '/'));
+    unset($_GET['f']);
+  }
+
   $form['text-range'] = array('#markup' => '<p class="text-range">' . t('!field_name ranges from !prefix@from!suffix to !prefix@to!suffix', array(
       '!field_name' => $variables['name'],
       '@from' => number_format($variables['min'], 0, ',', '.'),
@@ -242,7 +249,7 @@ function search_api_ranges_block_view_form($form, &$form_state, $variables) {
   );
   $form['range-ajax-target'] = array(
     '#type' => 'hidden',
-    '#value' => url($_GET['q'], array('query' => $params)),
+    '#value' => url($path, array('query' => $params)),
   );
   $form['range-field'] = array(
     '#type' => 'hidden',
