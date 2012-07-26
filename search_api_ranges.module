@@ -27,10 +27,18 @@ function search_api_ranges_theme() {
 /**
  * Implements hook_init().
  */
-function search_api_ranges_init() {
+function search_api_ranges_preprocess_page() {
+  $return = FALSE;
+  foreach (search_api_current_search() as $key => $search) {
+    if (strpos($key, 'facets_block') !== FALSE) {
+      continue;
+    }
+    $return = TRUE;
+  }
+  if (!$return) {
+    return;
+  }
 
-  // @todo only show on required pages
-  // Add jQuery UI Slider and Search API ranges JS
   drupal_add_library('system', 'ui.slider');
   drupal_add_js(drupal_get_path('module', 'search_api_ranges') . '/jquery.numeric.js');
   drupal_add_js(drupal_get_path('module', 'search_api_ranges') . '/search_api_ranges.js');
@@ -303,17 +311,4 @@ function search_api_ranges_block_view_form_submit($form, &$form_state) {
   }
 
   drupal_goto($_GET['q'], array('query' => array($params)));
-}
-
-/**
- * Implements hook_search_api_alter_callback_info().
- */
-function search_api_ranges_search_api_alter_callback_info() {
-  $callbacks['search_api_ranges_alter'] = array(
-    'name' => t('Search API ranges'),
-    'description' => t('Alters all passed item data completely randomly.'),
-    'class' => 'SearchApiRangesAlter',
-    'weight' => 100,
-  );
-  return $callbacks;
 }
