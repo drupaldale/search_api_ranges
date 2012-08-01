@@ -45,6 +45,19 @@ function search_api_ranges_preprocess_page() {
 }
 
 /**
+ * Implements hook_search_api_alter_callback_info().
+ */
+function search_api_ranges_search_api_alter_callback_info() {
+  $callbacks['search_api_ranges_alter'] = array(
+    'name' => t('Search API ranges'),
+    'description' => t('Adds the minimum and maximum values of selected numeric fields.'),
+    'class' => 'SearchApiRangesAlter',
+    'weight' => 100,
+  );
+  return $callbacks;
+}
+
+/**
  * Implements hook_facetapi_widgets().
  */
 function search_api_ranges_facetapi_widgets() {
