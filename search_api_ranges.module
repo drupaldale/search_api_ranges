@@ -133,6 +133,8 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
       }
     }
   }
+  // Filter out results with no values for that field.
+  $query->condition($variables['range_field'], NULL, '<>');
 
   // Execute the query and process results
   $results = search_api_ranges_minmax_execute($query);
