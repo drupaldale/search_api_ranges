@@ -45,19 +45,6 @@ function search_api_ranges_preprocess_page() {
 }
 
 /**
- * Implements hook_search_api_alter_callback_info().
- */
-function search_api_ranges_search_api_alter_callback_info() {
-  $callbacks['search_api_ranges_alter'] = array(
-    'name' => t('Search API ranges'),
-    'description' => t('Adds the minimum and maximum values of selected numeric fields.'),
-    'class' => 'SearchApiRangesAlter',
-    'weight' => 100,
-  );
-  return $callbacks;
-}
-
-/**
  * Implements hook_facetapi_widgets().
  */
 function search_api_ranges_facetapi_widgets() {
@@ -243,7 +230,7 @@ function search_api_ranges_block_view_form($form, &$form_state, $variables) {
   }
 
   $form['text-range'] = array('#markup' => '<p class="text-range">' . t('!field_name ranges from !prefix@from!suffix to !prefix@to!suffix', array(
-      '!field_name' => $variables['name'],
+      '!field_name' => t($variables['name']),
       '@from' => number_format($variables['min'], 0, ',', '.'),
       '@to' => number_format($variables['max'], 0, ',', '.'),
       '!prefix' => $variables['prefix'],
@@ -326,4 +313,17 @@ function search_api_ranges_block_view_form_submit($form, &$form_state) {
   }
 
   drupal_goto($_GET['q'], array('query' => array($params)));
+}
+
+/**
+ * Implements hook_search_api_alter_callback_info().
+ */
+function search_api_ranges_search_api_alter_callback_info() {
+  $callbacks['search_api_ranges_alter'] = array(
+    'name' => t('Search API ranges'),
+    'description' => t('Adds the minimum and maximum values of selected numeric fields.'),
+    'class' => 'SearchApiRangesAlter',
+    'weight' => 100,
+  );
+  return $callbacks;
 }
