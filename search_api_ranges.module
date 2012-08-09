@@ -292,27 +292,53 @@ function search_api_ranges_block_view_form_submit($form, &$form_state) {
     'page'
   ));
 
-  // Prepare new range query (override existing key or add new)
-  $query = $range_field . ':' . '[' . $values['range-from'] . ' TO ' . $values['range-to'] . ']';
-  // @todo Facet API can have different '?f=' for query, how to detect?
-
-  $pos = -1;
-  if (isset($params['f'])) {
-    foreach ($params['f'] as $key => $param) {
-      if (strpos($param, $range_field . ':') !== FALSE) {
-        $pos = $key;
+  // Get pretty path path and goto()
+  $path = $_GET['q'];
+  if (module_exists('facetapi_pretty_paths')) {
+    $exists = FALSE;
+    $path = urldecode(ltrim(parse_url(request_uri(), PHP_URL_PATH), '/'));
+    $split_path = explode('/', $path);
+    foreach ($split_path as $key => $value) {
+      if (!($key % 2) && $value == $range_field) {
+        $exists = $split_path[$key + 1];
       }
+    }
+
+    // Decision: replace existing range or add new
+    $new_range = '[' . $values['range-from'] . ' TO ' . $values['range-to'] . ']';
+    if ($exists) {
+      $path = str_replace($exists, $new_range, $path);
+    }
+    else {
+      $path .= '/' . $range_field . '/' . $new_range;
+    }
+
+    // Unset non-pretty query
+    unset($params['f']);
+  }
+
+  // Non-pretty path logic
+  else {
+    $query = $range_field . ':' . '[' . $values['range-from'] . ' TO ' . $values['range-to'] . ']';
+
+    $pos = -1;
+    if (isset($params['f'])) {
+      foreach ($params['f'] as $key => $param) {
+        if (strpos($param, $range_field . ':') !== FALSE) {
+          $pos = $key;
+        }
+      }
+    }
+
+    if ($pos != -1) {
+      $params['f'][$pos] = $query;
+    }
+    else {
+      $params['f'][] = $query;
     }
   }
 
-  if ($pos != -1) {
-    $params['f'][$pos] = $query;
-  }
-  else {
-    $params['f'][] = $query;
-  }
-
-  drupal_goto($_GET['q'], array('query' => array($params)));
+  drupal_goto($path, array('query' => array($params)));
 }
 
 /**

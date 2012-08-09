@@ -119,10 +119,17 @@ class SearchApiRangesWidgetUISlider extends FacetapiWidget {
       $to_value = $max_value;
     }
 
+    // Get facet path field/alias
+    $range_field = $this->facet['field alias'];
+    if (module_exists('facetapi_pretty_paths')) {
+      $processor = new FacetapiUrlProcessorPrettyPaths($this->facet->getAdapter());
+      $range_field = $processor->getFacetPrettyPathsAlias($this->facet->getFacet());
+    }
+
     // Prepare the slider variables and return themed form
     // @see search-api-ranges-slider.tpl.php
     $variables = array(
-      'range_field' => rawurlencode($this->facet['field alias']),
+      'range_field' => rawurlencode($range_field),
       'name' => $this->settings->settings['name'],
       'prefix' => $this->settings->settings['prefix'],
       'suffix' => $this->settings->settings['suffix'],
