@@ -225,7 +225,7 @@ function search_api_ranges_block_view_form($form, &$form_state, $variables) {
   // Get path or facetapi_pretty_paths
   $path = $_GET['q'];
   if (module_exists('facetapi_pretty_paths')) {
-    $path = $_REQUEST['q'];
+    $path = ltrim(parse_url(request_uri(), PHP_URL_PATH), '/');
     unset($_GET['f']);
   }
 
@@ -296,7 +296,7 @@ function search_api_ranges_block_view_form_submit($form, &$form_state) {
   $path = $_GET['q'];
   if (module_exists('facetapi_pretty_paths')) {
     $exists = FALSE;
-    $path = $_REQUEST['q'];
+    $path = ltrim(parse_url(request_uri(), PHP_URL_PATH), '/');
     $split_path = explode('/', $path);
     foreach ($split_path as $key => $value) {
       if (!($key % 2) && $value == $range_field) {
