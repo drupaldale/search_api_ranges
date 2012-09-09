@@ -139,6 +139,7 @@ class SearchApiRangesWidgetUISlider extends FacetapiWidget {
       'to' => $to_value,
       'auto_submit_delay' => is_numeric($this->settings->settings['auto-submit-delay']) ? $this->settings->settings['auto-submit-delay'] : 0,
       'active_items' => $this->facet->getAdapter()->getAllActiveItems(),
+      'target' => $this->facet->getAdapter()->getSearchPath(),
     );
     return drupal_get_form('search_api_ranges_block_slider_view_form', $variables);
   }
