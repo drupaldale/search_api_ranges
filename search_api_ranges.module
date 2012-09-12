@@ -149,7 +149,15 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
 
   // We have to round because jQuery slider cannot handle decimals
   $return = $fields[$variables['range_field']]['value'];
-  return round($return);
+  switch ($order) {
+    case 'DESC':
+      $return = ceil($return);  
+      break;
+      
+    default:
+      $return = round($return);
+  }
+  return $return;
 }
 
 /**
