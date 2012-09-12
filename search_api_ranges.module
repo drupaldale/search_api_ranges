@@ -270,7 +270,7 @@ function search_api_ranges_block_slider_view_form($form, &$form_state, $variable
   );
   $form['path'] = array(
     '#type' => 'hidden',
-    '#value' => url($path, array('query' => $params)),
+    '#value' => $path,
   );
   $form['range-field'] = array(
     '#type' => 'hidden',
