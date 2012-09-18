@@ -78,7 +78,6 @@ class SearchApiRangesWidgetUISlider extends FacetapiWidget {
    */
   public function _buildUISliderForm() {
     $slider = array();
-
     // Get Search API stuff
     $searcher = $this->facet->getAdapter()->getSearcher();
     $index_id = explode('@', $searcher);
@@ -119,6 +118,23 @@ class SearchApiRangesWidgetUISlider extends FacetapiWidget {
       $to_value = $max_value;
     }
 
+    // If there's a map callback function defined, call it to retrieve the
+    // mapped values.
+    if (isset($facet['map options']['map callback']) && is_callable($facet['map options']['map callback'])) {
+      $function = $facet['map options']['map callback'];
+      $variables = array(
+        'map callback' => $function,
+      );
+      $values_to_map = array($min_value, $max_value, $from_value, $to_value);
+      $mapped_values = $function($values_to_map);
+      if (!empty($mapped_values)) {
+        $min_value = round($mapped_values[$min_value]);
+        $max_value = round($mapped_values[$min_value]);
+        $from_value = round($mapped_values[$from_value]);
+        $to_value = round($mapped_values[$to_value]);
+      }
+    }
+
     // Get facet path field/alias
     $range_field = $this->facet['field alias'];
     if (module_exists('facetapi_pretty_paths')) {
@@ -128,7 +144,7 @@ class SearchApiRangesWidgetUISlider extends FacetapiWidget {
 
     // Prepare the slider variables and return themed form
     // @see search-api-ranges-slider.tpl.php
-    $variables = array(
+    $variables += array(
       'range_field' => rawurlencode($range_field),
       'name' => $this->settings->settings['name'],
       'prefix' => $this->settings->settings['prefix'],

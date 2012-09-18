@@ -241,6 +241,14 @@ function search_api_ranges_block_slider_view_form($form, &$form_state, $variable
     }
   }
 
+  // Store the map callback if any.
+  if (isset($variables['map callback'])) {
+    $form['map callback'] = array(
+      '#type' => 'value',
+      '#value' => $variables['map callback'],
+    );
+  }
+
   // Get path or facetapi_pretty_paths
   $path = $variables['target'];
   if (module_exists('facetapi_pretty_paths')) {
@@ -304,6 +312,17 @@ function search_api_ranges_block_slider_view_form($form, &$form_state, $variable
 function search_api_ranges_block_slider_view_form_submit($form, &$form_state) {
   $values = $form_state['values'];
   $range_field = $form_state['input']['range-field'];
+
+  // Call the map callback if any.
+  if (isset($values['map callback'])) {
+    $function = $values['map callback'];
+    $options = array(
+      'reverse' => TRUE,
+    );
+    $mapped_values = $function(array($values['range-from'], $values['range-to']), $options);
+    $values['range-from'] = $mapped_values[$values['range-from']];
+    $values['range-to'] = $mapped_values[$values['range-to']];
+  }
 
   // Prepare params and existing filter $pos (if any)
   $params = drupal_get_query_parameters($_GET, array(
