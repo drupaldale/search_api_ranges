@@ -120,6 +120,7 @@ class SearchApiRangesWidgetUISlider extends FacetapiWidget {
 
     // If there's a map callback function defined, call it to retrieve the
     // mapped values.
+    $facet = $this->facet->getFacet();
     if (isset($facet['map options']['map callback']) && is_callable($facet['map options']['map callback'])) {
       $function = $facet['map options']['map callback'];
       $variables = array(
@@ -129,7 +130,7 @@ class SearchApiRangesWidgetUISlider extends FacetapiWidget {
       $mapped_values = $function($values_to_map);
       if (!empty($mapped_values)) {
         $min_value = round($mapped_values[$min_value]);
-        $max_value = round($mapped_values[$min_value]);
+        $max_value = round($mapped_values[$max_value]);
         $from_value = round($mapped_values[$from_value]);
         $to_value = round($mapped_values[$to_value]);
       }
