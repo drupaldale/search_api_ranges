@@ -33,7 +33,12 @@ class SearchApiRangesWidgetLinks extends FacetapiWidgetLinks {
     );
  
     // Generate the ranges to the be used for the text links
-    $element = search_api_ranges_generate_ranges_simple($variables, $this->settings->settings['range_simple']);
+    if(strlen($this->settings->settings['range_advanced']) == 0){
+    	$element = search_api_ranges_generate_ranges_simple($variables, $this->settings->settings['range_simple']);
+    }
+    else{
+		$element = search_api_ranges_generate_ranges_advanced($variables, $this->settings->settings['range_advanced']);
+    }
 
     // Sets each item's theme hook, builds item list.
     $this->setThemeHooks($element);

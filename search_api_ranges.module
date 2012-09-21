@@ -63,6 +63,13 @@ function search_api_ranges_facetapi_widgets() {
         'query types' => array('term'),
       ),
     ),
+    'search_api_ranges_ui_select' => array(
+      'handler' => array(
+        'label' => t('Ranges: Drop down list'),
+        'class' => 'SearchApiRangesWidgetSelect',
+        'query types' => array('term'),
+      ),
+    ),
   );
 }
 
@@ -241,14 +248,6 @@ function search_api_ranges_block_slider_view_form($form, &$form_state, $variable
     }
   }
 
-  // Store the map callback if any.
-  if (isset($variables['map callback'])) {
-    $form['map callback'] = array(
-      '#type' => 'value',
-      '#value' => $variables['map callback'],
-    );
-  }
-
   // Get path or facetapi_pretty_paths
   $path = $variables['target'];
   if (module_exists('facetapi_pretty_paths')) {
@@ -312,17 +311,6 @@ function search_api_ranges_block_slider_view_form($form, &$form_state, $variable
 function search_api_ranges_block_slider_view_form_submit($form, &$form_state) {
   $values = $form_state['values'];
   $range_field = $form_state['input']['range-field'];
-
-  // Call the map callback if any.
-  if (isset($values['map callback'])) {
-    $function = $values['map callback'];
-    $options = array(
-      'reverse' => TRUE,
-    );
-    $mapped_values = $function(array($values['range-from'], $values['range-to']), $options);
-    $values['range-from'] = $mapped_values[$values['range-from']];
-    $values['range-to'] = $mapped_values[$values['range-to']];
-  }
 
   // Prepare params and existing filter $pos (if any)
   $params = drupal_get_query_parameters($_GET, array(
@@ -409,7 +397,7 @@ function search_api_ranges_search_api_alter_callback_info() {
  *   - (integer) min: The minimum vaule for the range.
  *   - (integer) max: The maximum value for the range.
  */
-function search_api_ranges_generate_ranges_simple($variables, $step) {
+function search_api_ranges_generate_ranges_simple($variables, $step) { 
   $element = $variables['element'];
 
   // Calculate the min and max of the ranges.
@@ -446,11 +434,76 @@ function search_api_ranges_generate_ranges_simple($variables, $step) {
 
   return $ranges;
 }
+function search_api_ranges_generate_ranges_advanced($variables, $steps) {
+  $element = $variables['element'];
+  // Calculate the min and max of the ranges.
+  $values = array_keys($element);
+  $min_value = $values[0];
+  $max_value = $values[count($values) - 1];
 
+  $adv_ranges = explode("\n", trim($steps));
+  $total_steps = 0;
+  foreach($adv_ranges as $ranges){
+  	$maxmin = explode("-", trim($ranges));
+	if(strlen($maxmin[0])==0){
+		$tmp_ranges[$total_steps]['min'] = trim($values[0]['#indexed_value']);
+	}
+	else{
+		$tmp_ranges[$total_steps]['min'] = trim($maxmin[0]);
+	}
+	if(strlen($maxmin[1])==0){
+
+		$element_key = $values[count($values) - 1];
+		$tmp_ranges[$total_steps]['max'] = trim($element[$element_key]['#indexed_value']);
+	}
+	else{
+		$tmp_ranges[$total_steps]['max'] = trim($maxmin[1]);
+	}
+	$tmp_ranges[$total_steps]['count'] = 0;
+	$total_steps++;
+
+  }
+  $count = 0;
+  $min = $tmp_ranges[0]['min'];
+  $max = $tmp_ranges[0]['max'];
+
+  $step = 0;
+  // Get a handle on params and existing filter (if any)
+  $params = drupal_get_query_parameters($_GET, array('q', 'page'));
+  $ranges = array();
+
+  $last_key = 0;
+  foreach ($values as $val) {
+	$key = _find_key_in_ranges($tmp_ranges, $val, $last_key);
+	$tmp_ranges[$key]['count'] += $element[$val]['#count']; 
+	$last_key = $key;
+	
+  }
+  foreach($tmp_ranges as $step => $count){
+  	$count = $tmp_ranges[$step]['count'];
+  	if($count > 0){
+  	  $min = $tmp_ranges[$step]['min'];
+	  $max = $tmp_ranges[$step]['max'];
+	  $count = $tmp_ranges[$step]['count'];
+  	  $ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $count, $variables, $params);
+	}
+  }
+
+  return $ranges;
+}
+function _find_key_in_ranges(&$ranges, $value, $last = 0){
+	if($ranges[$last]['min'] <= $value && $ranges[$last]['max'] >= $value){
+		return $last;
+	}
+	else{
+		return _find_key_in_ranges($ranges, $value, $last+1);
+	}
+}
 function _search_api_generate_range($min, $max, $count, $variables, $params) {
   // Generate the new query
   $query = urlencode($variables['range_field']) . ":[$min TO $max]";
   $active = FALSE;
+
 
   // Add the new query to any existing queries.
   // Or remove it if the range is already active.
@@ -464,13 +517,13 @@ function _search_api_generate_range($min, $max, $count, $variables, $params) {
       $active = TRUE;
     }
     else {
-      $params_clone['f'][] = $query;
+      $params['f'][] = $query;
     }
   }
 
   // Build up a render array.
   return array(
-    '#markup' => $variables['prefix'] . $min . $variables['suffix'] . '–' . $variables['prefix'] . $max . $variables['suffix'],
+    '#markup' => $variables['prefix'] . number_format($min, 0, '.', '.') . $variables['suffix'] . '–' . $variables['prefix'] . number_format($max,0, '.', '.') . $variables['suffix'],
     '#path' => $_GET['q'],
     '#html' => FALSE,
     '#indexed_value' => 'TODO: what to put here?',
