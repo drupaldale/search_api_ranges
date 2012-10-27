@@ -62,6 +62,9 @@ class SearchApiRangesWidgetLinks extends FacetapiWidgetLinks {
         'visible' => array(
           'select[name="widget"]' => array('value' => $this->id),
         ),
+        'enabled' => array(
+          'select[name="widget"]' => array('value' => $this->id),
+        ),
       ),
     );
     $form['widget']['widget_settings']['links'][$this->id]['prefix'] = array(
@@ -71,6 +74,9 @@ class SearchApiRangesWidgetLinks extends FacetapiWidgetLinks {
       '#description' => t('Adds a prefix to the text links, e.g. $, #.'),
       '#states' => array(
         'visible' => array(
+          'select[name="widget"]' => array('value' => $this->id),
+        ),
+        'enabled' => array(
           'select[name="widget"]' => array('value' => $this->id),
         ),
       ),
@@ -84,6 +90,9 @@ class SearchApiRangesWidgetLinks extends FacetapiWidgetLinks {
         'visible' => array(
           'select[name="widget"]' => array('value' => $this->id),
         ),
+        'enabled' => array(
+          'select[name="widget"]' => array('value' => $this->id),
+        ),
       ),
     );
     $form['widget']['widget_settings']['links'][$this->id]['range_simple'] = array(
@@ -95,6 +104,9 @@ class SearchApiRangesWidgetLinks extends FacetapiWidgetLinks {
         'visible' => array(
           'select[name="widget"]' => array('value' => $this->id),
         ),
+        'enabled' => array(
+          'select[name="widget"]' => array('value' => $this->id),
+        ),
       ),
     );
     $form['widget']['widget_settings']['links'][$this->id]['range_advanced'] = array(
@@ -104,6 +116,9 @@ class SearchApiRangesWidgetLinks extends FacetapiWidgetLinks {
       '#description' => t('Add a pre-defined list of ranges to create "range facets". For examples, refer to README in search api range.'),
       '#states' => array(
         'visible' => array(
+          'select[name="widget"]' => array('value' => $this->id),
+        ),
+        'enabled' => array(
           'select[name="widget"]' => array('value' => $this->id),
         ),
       ),

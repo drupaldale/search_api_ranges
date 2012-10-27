@@ -123,6 +123,37 @@ class SearchApiRangesWidgetSelect extends FacetapiWidgetLinks {
         'visible' => array(
           'select[name="widget"]' => array('value' => $this->id),
         ),
+        'enabled' => array(
+          'select[name="widget"]' => array('value' => $this->id),
+        ),
+      ),
+    );
+    $form['widget']['widget_settings']['links'][$this->id]['prefix'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Prefix'),
+      '#default_value' => $this->settings->settings['prefix'],
+      '#description' => t('Adds a prefix to the text links, e.g. $, #.'),
+      '#states' => array(
+        'visible' => array(
+          'select[name="widget"]' => array('value' => $this->id),
+        ),
+        'enabled' => array(
+          'select[name="widget"]' => array('value' => $this->id),
+        ),
+      ),
+    );
+    $form['widget']['widget_settings']['links'][$this->id]['suffix'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Suffix'),
+      '#default_value' => $this->settings->settings['suffix'],
+      '#description' => t('Adds a suffix to the text links, e.g. &euro;, pcs., etc.'),
+      '#states' => array(
+        'visible' => array(
+          'select[name="widget"]' => array('value' => $this->id),
+        ),
+        'enabled' => array(
+          'select[name="widget"]' => array('value' => $this->id),
+        ),
       ),
     );
     $form['widget']['widget_settings']['links'][$this->id]['range_simple'] = array(
@@ -134,6 +165,9 @@ class SearchApiRangesWidgetSelect extends FacetapiWidgetLinks {
         'visible' => array(
           'select[name="widget"]' => array('value' => $this->id),
         ),
+        'enabled' => array(
+          'select[name="widget"]' => array('value' => $this->id),
+        ),
       ),
     );
     $form['widget']['widget_settings']['links'][$this->id]['range_advanced'] = array(
@@ -143,6 +177,9 @@ class SearchApiRangesWidgetSelect extends FacetapiWidgetLinks {
       '#description' => t('Add a pre-defined list of ranges to create "range facets". For examples, refer to README in search api range.'),
       '#states' => array(
         'visible' => array(
+          'select[name="widget"]' => array('value' => $this->id),
+        ),
+        'enabled' => array(
           'select[name="widget"]' => array('value' => $this->id),
         ),
       ),
