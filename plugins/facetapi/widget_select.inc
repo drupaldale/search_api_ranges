@@ -43,7 +43,7 @@ class SearchApiRangesWidgetSelect extends FacetapiWidgetLinks {
     $cp_element = $element;
     $first = array_slice($cp_element, 0, 1);
     $cp_first = $first;
-    if (count($cp_first[0]['#query']['f']) > 0) {
+    if (isset($cp_first[0]) && count($cp_first[0]['#query']['f']) > 0) {
       foreach ($cp_first[0]['#query']['f'] as $key => $qstring) {
         $values = explode(':', $qstring);
         if ($values[0] == $this->facet['field alias']) {
