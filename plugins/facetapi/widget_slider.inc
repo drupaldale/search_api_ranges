@@ -2,11 +2,7 @@
 
 /**
  * @file
- * Widgets for facets rendered as UI sliders with Min/Max respect.
- */
-
-/**
- * Widget that renders facets as a UI slider.
+ * Widget for facets rendered as UI slider with Min/Max.
  */
 class SearchApiRangesWidgetUISlider extends FacetapiWidget {
 
@@ -35,33 +31,35 @@ class SearchApiRangesWidgetUISlider extends FacetapiWidget {
       '#title' => t('Name'),
       '#default_value' => $this->settings->settings['name'],
       '#description' => t('The name of the range field.'),
-      '#states' => array('visible' => array('select[name="widget"]' => array('value' => $this->id), ), ),
+      '#states' => array('visible' => array('select[name="widget"]' => array('value' => $this->id),),),
     );
     $form['widget']['widget_settings']['links'][$this->id]['prefix'] = array(
       '#type' => 'textfield',
       '#title' => t('Prefix'),
       '#default_value' => $this->settings->settings['prefix'],
       '#description' => t('Adds a prefix to the slider, e.g. $, #.'),
-      '#states' => array('visible' => array('select[name="widget"]' => array('value' => $this->id), ), ),
+      '#states' => array('visible' => array('select[name="widget"]' => array('value' => $this->id),),),
     );
     $form['widget']['widget_settings']['links'][$this->id]['suffix'] = array(
       '#type' => 'textfield',
       '#title' => t('Suffix'),
       '#default_value' => $this->settings->settings['suffix'],
       '#description' => t('Adds a suffix to the slider, e.g. &euro;, pcs., etc.'),
-      '#states' => array('visible' => array('select[name="widget"]' => array('value' => $this->id), ), ),
+      '#states' => array('visible' => array('select[name="widget"]' => array('value' => $this->id),),),
     );
     $form['widget']['widget_settings']['links'][$this->id]['auto-submit-delay'] = array(
       '#type' => 'textfield',
       '#title' => t('Auto Submit Delay'),
       '#default_value' => $this->settings->settings['auto-submit-delay'],
-      '#description' => t('Automatically submit form after the user changes releases slider handles. Enter a delay in milliseconds, i.e. 1000 for 1 second.'),
-      '#states' => array('visible' => array('select[name="widget"]' => array('value' => $this->id), ), ),
+      '#description' => t('Automatically submit form after the user changes 
+        releases slider handles. Enter a delay in milliseconds,
+        i.e. 1000 for 1 second.'),
+      '#states' => array('visible' => array('select[name="widget"]' => array('value' => $this->id),),),
     );
   }
 
   /**
-   * Returns defaults for the settings this widget provides.
+   * Returns defaults for the settings form.
    */
   function getDefaultSettings() {
     return array(
@@ -99,7 +97,7 @@ class SearchApiRangesWidgetUISlider extends FacetapiWidget {
     // Kill widget if there is nothing to do
     if (empty($min_value) && empty($max_value)) {
       return array();
-    }
+    };
 
     // Calculate user input from/to values (different concept than min/max)
     foreach ($this->facet->getAdapter()->getAllActiveItems() as $key => $active_item) {
@@ -108,23 +106,23 @@ class SearchApiRangesWidgetUISlider extends FacetapiWidget {
         $from_value = round($values[0]);
         $to_value = round($values[2]);
         break;
-      }
-    }
+      };
+    };
 
     // User from/to cannot exceed queried min/max, adjust if needed
     if (!isset($from_value) || $from_value < $min_value) {
       $from_value = $min_value;
-    }
+    };
     if (!isset($to_value) || $max_value < $to_value) {
       $to_value = $max_value;
-    }
+    };
 
     // Get facet path field/alias
     $range_field = $this->facet['field alias'];
     if (module_exists('facetapi_pretty_paths')) {
       $processor = new FacetapiUrlProcessorPrettyPaths($this->facet->getAdapter());
       $range_field = $processor->getFacetPrettyPathsAlias($this->facet->getFacet());
-    }
+    };
 
     // Prepare the slider variables and return themed form
     // @see search-api-ranges-slider.tpl.php

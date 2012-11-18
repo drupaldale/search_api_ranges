@@ -31,13 +31,13 @@ class SearchApiRangesWidgetLinks extends FacetapiWidgetLinks {
       'prefix' => $this->settings->settings['prefix'],
       'suffix' => $this->settings->settings['suffix'],
     );
- 
+
     // Generate the ranges to the be used for the text links
-    if(strlen($this->settings->settings['range_advanced']) == 0){
-    	$element = search_api_ranges_generate_ranges_simple($variables, $this->settings->settings['range_simple']);
+    if (strlen($this->settings->settings['range_advanced']) == 0) {
+      $element = search_api_ranges_generate_ranges_simple($variables, $this->settings->settings['range_simple']);
     }
-    else{
-		$element = search_api_ranges_generate_ranges_advanced($variables, $this->settings->settings['range_advanced']);
+    else {
+      $element = search_api_ranges_generate_ranges_advanced($variables, $this->settings->settings['range_advanced']);
     }
 
     // Sets each item's theme hook, builds item list.
@@ -99,7 +99,8 @@ class SearchApiRangesWidgetLinks extends FacetapiWidgetLinks {
       '#type' => 'textfield',
       '#title' => t('Simple range'),
       '#default_value' => $this->settings->settings['range_simple'],
-      '#description' => t('Add a fixed range to create "range facet". For example, "10" on a price field will create 10 - 20, 20 - 30 etc.'),
+      '#description' => t('Add a fixed range to create "range facet". 
+        For example, "10" on a price field will create 10 - 20, 20 - 30 etc.'),
       '#states' => array(
         'visible' => array(
           'select[name="widget"]' => array('value' => $this->id),
@@ -113,7 +114,8 @@ class SearchApiRangesWidgetLinks extends FacetapiWidgetLinks {
       '#type' => 'textarea',
       '#title' => t('Advanced range'),
       '#default_value' => $this->settings->settings['range_advanced'],
-      '#description' => t('Add a pre-defined list of ranges to create "range facets". For examples, refer to README in search api range.'),
+      '#description' => t('Add a pre-defined list of ranges to create 
+        "range facets". For examples, refer to README in search api range.'),
       '#states' => array(
         'visible' => array(
           'select[name="widget"]' => array('value' => $this->id),
