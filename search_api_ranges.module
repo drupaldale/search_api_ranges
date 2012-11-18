@@ -402,32 +402,28 @@ function search_api_ranges_search_api_alter_callback_info() {
  */
 function search_api_ranges_generate_ranges_simple($variables, $step) {
   $element = $variables['element'];
-
-  // Calculate the min and max of the ranges.
-  $values = array_keys($element);
-  $min_value = $values[0];
-  $max_value = $values[count($values) - 1];
-
-  // Get a handle on params and existing filter (if any).
   $params = drupal_get_query_parameters($_GET, array('q', 'page'));
-
-  $count = 0;
   $ranges = array();
-  $min = floor($min_value / $step) * $step;
-  $max = $min + $step;
-  foreach ($values as $val) {
-    if ($val > $max) {
-      $ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $count, $variables, $params);
 
-      $min = $max;
-      $max += $step;
-      $count = 0;
+  if (count($element)) {
+    $values = array_keys($element);
+    sort($values, SORT_NUMERIC);
+    $min = floor($values[0] / $step) * $step;
+    $max = $min + $step;
+    $result_count = 0;
+
+    foreach ($values as $val) {
+      if ($val >= $max) {
+        $ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $result_count, $variables, $params);
+        $min = $max;
+        $max += $step;
+        $result_count = 0;
+      }
+      $result_count += $element[$val]['#count'];
+    }
+    if ($result_count) {
+      $ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $result_count, $variables, $params);
     };
-
-    $count += $element[$val]['#count'];
-  };
-  if ($count) {
-    $ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $count, $variables, $params);
   };
 
   return $ranges;
@@ -437,68 +433,58 @@ function search_api_ranges_generate_ranges_advanced($variables, $steps) {
   $element = $variables['element'];
   // Calculate the min and max of the ranges.
   $values = array_keys($element);
-  $min_value = $values[0];
-  $max_value = $values[count($values) - 1];
+  sort($values, SORT_NUMERIC);
+  $min_all = $values[0];
+  $max_all = $values[count($values) - 1];
 
   $adv_ranges = explode("\n", trim($steps));
-  $total_steps = 0;
-  foreach ($adv_ranges as $ranges) {
-    $maxmin = explode("-", trim($ranges));
-    if (strlen($maxmin[0]) == 0) {
-      $tmp_ranges[$total_steps]['min'] = trim($values[0]['#indexed_value']);
+  $tmp_ranges = array();
+  $ret_ranges = array();
+
+  if (count($adv_ranges)) {
+    foreach ($adv_ranges as $ranges) {
+      if (substr_count($ranges, '-') == 1) {
+        $maxmin = explode("-", trim($ranges));
+        $min = trim($maxmin[0]);
+        $max = trim($maxmin[1]);
+
+        if (strlen($min) == 0) {
+          $min = $min_all;
+        }
+        if (strlen($max) == 0) {
+          $max = $max_all;
+        }
+        $tmp_ranges[] = array(
+          'min' => $min,
+          'max' => $max,
+        );
+      };
+    };
+  };
+
+  if (count($tmp_ranges)) {
+    $params = drupal_get_query_parameters($_GET, array('q', 'page'));
+    $min = $tmp_ranges[0]['min'];
+    $max = $tmp_ranges[0]['max'];
+    $range_step = 0;
+    $result_count = 0;
+
+    foreach ($values as $val) {
+      if ($val >= $max) {
+        $ret_ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $result_count, $variables, $params);
+        $range_step++;
+        $min = $tmp_ranges[$range_step]['min'];
+        $max = $tmp_ranges[$range_step]['max'];
+        $result_count = 0;
+      }
+      $result_count += $element[$val]['#count'];
     }
-    else {
-      $tmp_ranges[$total_steps]['min'] = trim($maxmin[0]);
-    };
-    
-    if (strlen($maxmin[1]) == 0) {
-      $element_key = $values[count($values) - 1];
-      $tmp_ranges[$total_steps]['max'] = trim($element[$element_key]['#indexed_value']);
+    if ($result_count) {
+      $ret_ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $result_count, $variables, $params);
     }
-    else {
-      $tmp_ranges[$total_steps]['max'] = trim($maxmin[1]);
-    };
-    
-    $tmp_ranges[$total_steps]['count'] = 0;
-    $total_steps++;
-  };
-  
-  $count = 0;
-  $min = $tmp_ranges[0]['min'];
-  $max = $tmp_ranges[0]['max'];
-
-  $step = 0;
-  // Get a handle on params and existing filter (if any).
-  $params = drupal_get_query_parameters($_GET, array('q', 'page'));
-  $ranges = array();
-
-  $last_key = 0;
-  foreach ($values as $val) {
-    $key = _find_key_in_ranges($tmp_ranges, $val, $last_key);
-    $tmp_ranges[$key]['count'] += $element[$val]['#count'];
-    $last_key = $key;
-  };
-  
-  foreach ($tmp_ranges as $step => $count) {
-    $count = $tmp_ranges[$step]['count'];
-    if ($count > 0) {
-      $min = $tmp_ranges[$step]['min'];
-      $max = $tmp_ranges[$step]['max'];
-      $count = $tmp_ranges[$step]['count'];
-      $ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $count, $variables, $params);
-    };
   };
 
-  return $ranges;
-}
-
-function _find_key_in_ranges(&$ranges, $value, $last = 0) {
-  if ($ranges[$last]['min'] <= $value && $ranges[$last]['max'] >= $value) {
-    return $last;
-  }
-  else {
-    return _find_key_in_ranges($ranges, $value, $last + 1);
-  };
+  return $ret_ranges;
 }
 
 function _search_api_generate_range($min, $max, $count, $variables, $params) {
