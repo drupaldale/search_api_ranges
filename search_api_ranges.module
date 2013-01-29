@@ -16,8 +16,7 @@ function search_api_ranges_theme() {
       'file' => 'search_api_ranges.theme.inc',
     ),
     'search_api_ranges_block_slider_view_form' => array(
-      'arguments' => array('form' => NULL),
-      'template' => 'search-api-ranges-slider',
+      'template' => 'search-api-ranges-block-slider-view-form',
       'render element' => 'form',
     ),
   );
