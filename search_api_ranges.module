@@ -102,6 +102,8 @@ function search_api_ranges_facetapi_facet_info_alter(array &$facet_info, array $
  *
  */
 function search_api_ranges_minmax($variables, $order = 'ASC') {
+  drupal_alter('search_api_ranges_minmax', $variables, $order);
+
   $query = $variables['query'];
   $index = $variables['index'];
   $order_lower = strtolower($order);
