@@ -162,7 +162,7 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
       break;
 
     default:
-      $return = round($return);
+      $return = floor($return);
   }
   return $return;
 }
