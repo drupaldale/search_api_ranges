@@ -93,7 +93,7 @@ class SearchApiRangesWidgetSelect extends FacetapiWidgetLinks {
       if (!isset($form_state)) {
         $form_state = array();
       };
-      $element = facetapi_select_facet_form($form_state, $options, $count_select_widget, $active, $remove_facet_url);
+      $element = facetapi_ranges_select_facet_form($form_state, $options, $count_select_widget, $active, $remove_facet_url);
     };
   }
 
@@ -190,11 +190,11 @@ class SearchApiRangesWidgetSelect extends FacetapiWidgetLinks {
 
 }
 
-function facetapi_select_facet_form($form_state, $options, $count = 0, $active, $first) {
+function facetapi_ranges_select_facet_form($form_state, $options, $count = 0, $active, $first) {
   //drupal_add_js(drupal_get_path('module', 'facetapi_select') .'/js/facetapi_select.js');
   //drupal_add_css(drupal_get_path('module', 'facetapi_select').'/default.css');
 
-  $name = 'facetapi_select_facet_form_' . $count;
+  $name = 'facetapi_ranges_select_facet_form_' . $count;
   $query_string = $_GET;
 
   unset($query_string['q']);
