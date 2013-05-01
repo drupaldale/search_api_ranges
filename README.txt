@@ -11,3 +11,9 @@ Requires Facet API and Search API facetapi integration.
 - (optionally) configure name, prefix, suffix
 - (optionally) override theme for search-api-ranges-slider.tpl.php
 - enable your new Facet block
+
+Examples of advanced ranges
+---------------------------
+
+0-100 : [0, 100]
+101-* : [101, infinite)
