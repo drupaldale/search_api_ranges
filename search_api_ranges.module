@@ -1,4 +1,4 @@
-<?php
+  <?php
 
 /**
  * @file
@@ -263,8 +263,8 @@ function search_api_ranges_block_slider_view_form($form, &$form_state, $variable
         . $variables['range_field'] . '@to!suffix_' . $variables['range_field'],
         array(
           '!field_name' => t($variables['name']),
-          '@from' => number_format($variables['min'], 0, ',', '.'),
-          '@to' => number_format($variables['max'], 0, ',', '.'),
+          '@from' => number_format($variables['min'], 0),
+          '@to' => number_format($variables['max'], 0),
           '!prefix_' . $variables['range_field'] => $variables['prefix'],
           '!suffix_' . $variables['range_field'] => $variables['suffix'],
          )
@@ -510,9 +510,9 @@ function _search_api_generate_range($min, $max, $count, $variables, $params) {
 
   // Build up a render array.
   return array(
-    '#markup' => $variables['prefix'] . number_format($min, 0, '.', '.')
+    '#markup' => $variables['prefix'] . number_format($min, 0)
       . $variables['suffix'] . '–' . $variables['prefix']
-      . number_format($max, 0, '.', '.') . $variables['suffix'],
+      . number_format($max, 0) . $variables['suffix'],
     '#path' => $_GET['q'],
     '#html' => FALSE,
     '#indexed_value' => 'TODO: what to put here?',
