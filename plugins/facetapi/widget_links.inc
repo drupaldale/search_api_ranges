@@ -22,11 +22,19 @@ class SearchApiRangesWidgetLinks extends FacetapiWidgetLinks {
     $index = search_api_index_load($index_id[1]);
     list($query, $results) = $this->facet->getAdapter()->getCurrentSearch();
 
+    $range_field = $this->facet['field alias'];
+
+    // Get facet path field/alias
+    if (module_exists('facetapi_pretty_paths')) {
+      $processor = new FacetapiUrlProcessorPrettyPaths($this->facet->getAdapter());
+      $range_field = $processor->getFacetPrettyPathsAlias($this->facet->getFacet());
+    };
+
     // Prepare variables for min/max query
     $variables = array(
       'element' => $element,
       'index' => $index,
-      'range_field' => $this->facet['field alias'],
+      'range_field' => $range_field,
       'query' => $query,
       'prefix' => $this->settings->settings['prefix'],
       'suffix' => $this->settings->settings['suffix'],
@@ -40,11 +48,30 @@ class SearchApiRangesWidgetLinks extends FacetapiWidgetLinks {
       $element = search_api_ranges_generate_ranges_advanced($variables, $this->settings->settings['range_advanced']);
     }
 
+    // Replace ':' with '/'
+    if (module_exists('facetapi_pretty_paths')) {
+      foreach($element as $key => $e){
+        if (isset($e['#query']['f'])){
+          $element[$key]['#query']['f'] = str_replace(':', '/', $e['#query']['f']);
+        }
+      }
+    }
+
     // Sets each item's theme hook, builds item list.
     $this->setThemeHooks($element);
+
+    $items_build = $this->buildListItems($element);
+
+    // Replace ?f[0]= with /
+    if (module_exists('facetapi_pretty_paths')) {
+      foreach($items_build as $key => $build){
+        $items_build[$key]['data'] = str_replace('?f[0]=', '/', $build['data']);
+      }
+    }
+
     $element = array(
       '#theme' => 'item_list',
-      '#items' => $this->buildListItems($element),
+      '#items' => $items_build,
       '#attributes' => $this->build['#attributes'],
     );
   }
