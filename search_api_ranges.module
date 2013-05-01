@@ -1,5 +1,7 @@
 <?php
 
+define ('SEARCH_API_RANGES_ENDPOINT_INFINITE', '*');
+
 /**
  * @file
  * Performs min/max queries through Search API
@@ -147,7 +149,7 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
   if (!$results['results']) {
     return;
   };
-  
+
   foreach ($results['results'] as $result) {
     $entity = entity_load($variables['index']->item_type, array($result['id']));
     $variables['index']->dataAlter($entity);
@@ -256,7 +258,7 @@ function search_api_ranges_block_slider_view_form($form, &$form_state, $variable
   };
 
   $form['text-range'] = array(
-    '#markup' => '<p class="text-range">' 
+    '#markup' => '<p class="text-range">'
       . t(
         '!field_name ranges from !prefix_' . $variables['range_field']
         . '@from!suffix_' . $variables['range_field'] . ' to !prefix_'
@@ -465,23 +467,25 @@ function search_api_ranges_generate_ranges_advanced($variables, $steps) {
 
   if (count($tmp_ranges)) {
     $params = drupal_get_query_parameters($_GET, array('q', 'page'));
-    $min = $tmp_ranges[0]['min'];
-    $max = $tmp_ranges[0]['max'];
     $range_step = 0;
-    $result_count = 0;
 
-    foreach ($values as $val) {
-      if ($val >= $max) {
-        $ret_ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $result_count, $variables, $params);
-        $range_step++;
-        $min = $tmp_ranges[$range_step]['min'];
-        $max = $tmp_ranges[$range_step]['max'];
-        $result_count = 0;
+    foreach ($tmp_ranges as $tmp_range_id => $tmp_range) {
+      $min = $tmp_range['min'];
+      $max = $tmp_range['max'];
+      $result_count = 0;
+
+      foreach ($values as $val) {
+        if (($max != SEARCH_API_RANGES_ENDPOINT_INFINITE) && ($val > $max)) {
+          break;
+        }
+        elseif ($min != SEARCH_API_RANGES_ENDPOINT_INFINITE && ($val < $min)) {
+          continue;
+        }
+        $result_count += $element[$val]['#count'];
       }
-      $result_count += $element[$val]['#count'];
-    }
-    if ($result_count) {
-      $ret_ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $result_count, $variables, $params);
+      if ($result_count) {
+        $ret_ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $result_count, $variables, $params);
+      }
     }
   };
 
