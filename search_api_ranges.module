@@ -104,7 +104,15 @@ function search_api_ranges_facetapi_facet_info_alter(array &$facet_info, array $
  *
  */
 function search_api_ranges_minmax($variables, $order = 'ASC') {
+  // Allow the other modules to modify the query parameters.
   drupal_alter('search_api_ranges_minmax', $variables, $order);
+
+  // If query is empty, ignore sending the query.
+  // This allows other modules to decide 
+  // whenever we want to perform the query.
+  if (empty($variables['query'])) {
+    return;
+  }
 
   $query = $variables['query'];
   $index = $variables['index'];
