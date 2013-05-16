@@ -64,6 +64,13 @@ function search_api_ranges_facetapi_widgets() {
         'query types' => array('term'),
       ),
     ),
+    'search_api_ranges_ui_checkbox_links' => array(
+      'handler' => array(
+        'label' => t('Ranges: Text links with checkboxes'),
+        'class' => 'SearchApiRangesWidgetCheckboxLinks',
+        'query types' => array('term'),
+      ),
+    ),
     'search_api_ranges_ui_select' => array(
       'handler' => array(
         'label' => t('Ranges: Drop down list'),

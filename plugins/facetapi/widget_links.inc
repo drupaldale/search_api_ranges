@@ -168,3 +168,33 @@ class SearchApiRangesWidgetLinks extends FacetapiWidgetLinks {
   }
 
 }
+
+
+/**
+ * Widget that renders facets as a list of clickable checkboxes.
+ *
+ * This widget renders facets in the same way as SearchApiRangesWidgetLinks but uses
+ * JavaScript to transform the links into checkboxes followed by the facet.
+ */
+class SearchApiRangesWidgetCheckboxLinks extends SearchApiRangesWidgetLinks {
+
+  /**
+   * Overrides SearchApiRangesWidgetLinks::init().
+   *
+   * Adds additional JavaScript settings and CSS.
+   */
+  public function init() {
+    parent::init();
+    $this->jsSettings['makeCheckboxes'] = 1;
+    drupal_add_css(drupal_get_path('module', 'facetapi') . '/facetapi.css');
+  }
+
+  /**
+   * Overrides SearchApiRangesWidgetLinks::getItemClasses().
+   *
+   * Sets the base class for checkbox facet items.
+   */
+  public function getItemClasses() {
+    return array('facetapi-checkbox');
+  }
+}
