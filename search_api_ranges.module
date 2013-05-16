@@ -426,8 +426,8 @@ function search_api_ranges_generate_ranges_simple($variables, $step) {
     foreach ($values as $val) {
       if ($val >= $max) {
         $ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $result_count, $variables, $params);
-        $min = $max;
-        $max += $step;
+        $min = floor($val / $step) * $step;
+        $max = $min + $step;
         $result_count = 0;
       }
       $result_count += $element[$val]['#count'];
