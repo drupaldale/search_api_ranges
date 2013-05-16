@@ -448,14 +448,14 @@ function search_api_ranges_generate_ranges_advanced($variables, $steps) {
   $min_all = $values[0];
   $max_all = $values[count($values) - 1];
 
-  $adv_ranges = explode("\n", trim($steps));
+  $adv_ranges = _search_api_ranges_parse_advanced_range_settings($steps);
   $tmp_ranges = array();
   $ret_ranges = array();
 
   if (count($adv_ranges)) {
-    foreach ($adv_ranges as $ranges) {
-      if (substr_count($ranges, '-') == 1) {
-        $maxmin = explode("-", trim($ranges));
+    foreach ($adv_ranges as $range) {
+      if (substr_count($range['value'], '-') == 1) {
+        $maxmin = explode("-", $range['value']);
         $min = trim($maxmin[0]);
         $max = trim($maxmin[1]);
 
@@ -468,6 +468,7 @@ function search_api_ranges_generate_ranges_advanced($variables, $steps) {
         $tmp_ranges[] = array(
           'min' => $min,
           'max' => $max,
+          'label' => $range['label'],
         );
       };
     };
@@ -480,6 +481,7 @@ function search_api_ranges_generate_ranges_advanced($variables, $steps) {
     foreach ($tmp_ranges as $tmp_range_id => $tmp_range) {
       $min = $tmp_range['min'];
       $max = $tmp_range['max'];
+      $label = $tmp_range['label'];
       $result_count = 0;
 
       foreach ($values as $val) {
@@ -492,7 +494,7 @@ function search_api_ranges_generate_ranges_advanced($variables, $steps) {
         $result_count += $element[$val]['#count'];
       }
       if ($result_count) {
-        $ret_ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $result_count, $variables, $params);
+        $ret_ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $result_count, $variables, $params, $label);
       }
     }
   };
@@ -500,7 +502,39 @@ function search_api_ranges_generate_ranges_advanced($variables, $steps) {
   return $ret_ranges;
 }
 
-function _search_api_generate_range($min, $max, $count, $variables, $params) {
+/**
+ * Parse user submitted advanced range settings.
+ *
+ * @param $settings_string
+ * @return array $ranges Each consisting of a 'value' and 'label' element.
+ */
+function _search_api_ranges_parse_advanced_range_settings($settings_string) {
+  // This parsing code was lifted from core list.module
+  $list = explode("\n", $settings_string);
+  $list = array_map('trim', $list);
+  $list = array_filter($list, 'strlen');
+
+  $ranges = array();
+  foreach ($list as $range) {
+    // Check for an explicit key.
+    $matches = array();
+    if (preg_match('/(.*)\|(.*)/', $range, $matches)) {
+      $ranges[] = array(
+        'value' => trim($matches[1]),
+        'label' => trim($matches[2]),
+      );
+    }
+    else {
+      $ranges[] = array(
+        'value' => trim($range),
+        'label' => '',
+      );
+    }
+  }
+  return $ranges;
+}
+
+function _search_api_generate_range($min, $max, $count, $variables, $params, $label = '') {
   // Generate the new query.
   $query = urlencode($variables['range_field']) . ":[$min TO $max]";
   $active = FALSE;
@@ -520,11 +554,14 @@ function _search_api_generate_range($min, $max, $count, $variables, $params) {
     }
   }
 
+  if (empty($label)) {
+    $label = $variables['prefix'] . number_format($min, 0)
+      . $variables['suffix'] . '–' . $variables['prefix']
+      . number_format($max, 0) . $variables['suffix'];
+  }
   // Build up a render array.
   return array(
-    '#markup' => $variables['prefix'] . number_format($min, 0)
-      . $variables['suffix'] . '–' . $variables['prefix']
-      . number_format($max, 0) . $variables['suffix'],
+    '#markup' => $label,
     '#path' => $_GET['q'],
     '#html' => FALSE,
     '#indexed_value' => 'TODO: what to put here?',
