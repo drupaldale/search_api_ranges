@@ -95,6 +95,11 @@ class SearchApiRangesWidgetSelect extends FacetapiWidgetLinks {
       };
       $element = facetapi_ranges_select_facet_form($form_state, $options, $count_select_widget, $active, $remove_facet_url);
     };
+
+    // Add js.
+    drupal_add_library('system', 'ui.slider');
+    drupal_add_js(drupal_get_path('module', 'search_api_ranges') . '/jquery.numeric.js');
+    drupal_add_js(drupal_get_path('module', 'search_api_ranges') . '/search_api_ranges.js');
   }
 
   /**
