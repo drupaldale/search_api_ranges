@@ -95,7 +95,7 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
   drupal_alter('search_api_ranges_minmax', $variables, $order);
 
   // If query is empty, ignore sending the query.
-  // This allows other modules to decide 
+  // This allows other modules to decide
   // whenever we want to perform the query.
   if (empty($variables['query'])) {
     return;
@@ -248,7 +248,7 @@ function search_api_ranges_block_slider_view_form($form, &$form_state, $variable
   // Get path or facetapi_pretty_paths.
   $path = $variables['target'];
   if (module_exists('facetapi_pretty_paths')) {
-    $path = ltrim(parse_url(request_uri(), PHP_URL_PATH), '/');
+    $path = request_path();
     unset($_GET['f']);
   };
 
@@ -321,10 +321,9 @@ function search_api_ranges_block_slider_view_form_submit($form, &$form_state) {
   $params = drupal_get_query_parameters($_GET, array('q', 'page'));
 
   // Get pretty path path and goto()
-  $path = $values['path'];
+  $path = request_path();
   if (module_exists('facetapi_pretty_paths')) {
     $exists = FALSE;
-    $path = ltrim(parse_url(request_uri(), PHP_URL_PATH), '/');
     $split_path = explode('/', $path);
     foreach ($split_path as $key => $value) {
       if (!($key % 2) && $value == $range_field) {
