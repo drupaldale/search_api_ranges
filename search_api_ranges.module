@@ -91,6 +91,7 @@ function search_api_ranges_facetapi_facet_info_alter(array &$facet_info, array $
  *
  */
 function search_api_ranges_minmax($variables, $order = 'ASC') {
+
   // Allow the other modules to modify the query parameters.
   drupal_alter('search_api_ranges_minmax', $variables, $order);
 
@@ -104,6 +105,7 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
   $query = $variables['query'];
   $index = $variables['index'];
   $order_lower = strtolower($order);
+
   // Check if min or max values are indexed for multiple fields.
   if (search_api_is_list_type($index->options['fields'][$variables['range_field']]['type'])) {
     $field_name = str_replace(':', '_', $variables['range_field']) . '_' . $order_lower;
@@ -120,8 +122,10 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
   $options = &$query->getOptions();
   $options['limit'] = 1;
   $options['search id'] = 'search_api_ranges:' . $variables['range_field'] . ':minmax/' . $order;
+
   // For performance, we don't need to return any facets.
   $options['search_api_facets'] = array();
+
   // Do not take into account pager query.
   $options['offset'] = 0;
 
@@ -129,21 +133,43 @@ function search_api_ranges_minmax($variables, $order = 'ASC') {
   // otherwise our min/max would always equal user input.
   $filters = &$query->getFilter()->getFilters();
   foreach ($filters as $key => $filter) {
+
     // Check for array: old style filters are objects which we can skip.
     if (is_array($filter)) {
-      if ($filter[0] == $variables['range_field']) {
+      if ($filter[0] == $variables['range_field'] || ($filter[0] != $variables['range_field'] && $filter[2] == '<>')) {
+        $current_filter = $filters[$key];
         unset($filters[$key]);
-      };
-    };
-  };
+      }
+    }
+  }
+
   // Filter out results with no values for that field.
   $query->condition($variables['range_field'], NULL, '<>');
 
   // Execute the query and process results.
   $results = search_api_ranges_minmax_execute($query);
+  foreach ($filters as $key => $filter) {
+
+    // Remove $query->condition($variables['range_field'], NULL, '<>'); to prevent this condition influence on other facets
+    if (is_array($filter)) {
+      if ($filter[0] == $variables['range_field']  ) {
+        unset($filters[$key]);
+      }
+    }
+  }
+
+  // Return current filter with digital ranges to the query
+  if (isset($current_filter) && is_array($current_filter)) {
+    if ($current_filter[1] != NULL && $current_filter[2] !='<>') {
+      $query->condition($variables['range_field'], $current_filter[1], $current_filter[2]);
+    }
+    if ($current_filter[1] != NULL && $current_filter[2] !='<>') {
+      $query->condition($variables['range_field'], $current_filter[1], $current_filter[2]);
+    }
+  }
   if (!$results['results']) {
     return;
-  };
+  }
 
   foreach ($results['results'] as $result) {
     $entity = entity_load($variables['index']->item_type, array($result['id']));
