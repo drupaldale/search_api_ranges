@@ -445,18 +445,25 @@ function search_api_ranges_generate_ranges_simple($variables, $step) {
     $min = floor($values[0] / $step) * $step;
     $max = $min + $step;
     $result_count = 0;
-
-    foreach ($values as $val) {
-      if ($val >= $max) {
-        $ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $result_count, $variables, $params);
-        $min = floor($val / $step) * $step;
-        $max = $min + $step;
-        $result_count = 0;
+    $last_max = 0;
+    foreach ($element as $val=>$el) {
+      // move max till it crossover above $val
+      while(true) {
+        if($max > $val) {
+          break;
+        }
+        $min = $max;
+        $max += $step;
       }
       $result_count += $element[$val]['#count'];
-    }
-    if ($result_count) {
+      if ($last_max == $max) { // val is still in last range
+        continue;
+      }
+
+      $variables['el'] = $el;
       $ranges[$min . ' - ' . $max] = _search_api_generate_range($min, $max, $result_count, $variables, $params);
+      $last_max = $max;
+      $result_count = 0;
     }
   }
 
@@ -559,37 +566,23 @@ function _search_api_ranges_parse_advanced_range_settings($settings_string) {
 
 function _search_api_generate_range($min, $max, $count, $variables, $params, $label = '') {
   // Generate the new query.
-  $query = urlencode($variables['range_field']) . ":[$min TO $max]";
   $active = FALSE;
-
-  // Add the new query or remove it if the range is already active.
-  if (empty($params['f'])) {
-    $params['f'] = array($query);
-  }
-  else {
-    $key = array_search($query, $params['f']);
-    if ($key !== FALSE) {
-      unset($params['f'][$key]);
-      $active = TRUE;
-    }
-    else {
-      $params['f'][] = $query;
-    }
-  }
+  $el = $variables['el'];
 
   if (empty($label)) {
     $label = $variables['prefix'] . number_format($min, 0)
       . $variables['suffix'] . '–' . $variables['prefix']
       . number_format($max, 0) . $variables['suffix'];
   }
+
   // Build up a render array.
   return array(
     '#markup' => $label,
-    '#path' => $_GET['q'],
+    '#path' => $el['#path'],
     '#html' => FALSE,
     '#indexed_value' => 'TODO: what to put here?',
     '#count' => $count,
-    '#query' => $params,
+    '#query' => '',
     '#active' => $active,
   );
 }
