@@ -110,24 +110,22 @@ class SearchApiRangesAlter extends SearchApiAbstractAlterCallback {
   public function propertyInfo() {
     $ret = array();
     if (!empty($this->options['fields'])) {
-      $index_fields = $this->index->getFields(TRUE);
       foreach ($this->options['fields'] as $name => $field) {
-        if (isset($index_fields[$name])) {
-          $prefix = str_replace(':', '_', $name);
-          $ret[$prefix . $this->min_suffix] = array(
-            'label' => $index_fields[$name]['name'] . ' (Min)',
-            'description' => empty($index_fields[$name]['description']) ? '' : $index_fields[$name]['description'],
-            'type' => search_api_extract_inner_type($index_fields[$name]['type']),
-          );
-          $ret[$prefix . $this->max_suffix] = array(
-            'label' => $index_fields[$name]['name'] . ' (Max)',
-            'description' => empty($index_fields[$name]['description']) ? '' : $index_fields[$name]['description'],
-            'type' => search_api_extract_inner_type($index_fields[$name]['type']),
-          );
-        }
+        // Backward compatibility with the old format.
+        $is_array = is_array($field);
+        $prefix = str_replace(':', '_', $name);
+        $ret[$prefix . $this->min_suffix] = array(
+          'label' => ($is_array && !empty($field['name'])) ? $field['name'] . ' (Min)' : t('Search API ranges (Min)'),
+          'description' => ($is_array && !empty($field['description'])) ? $field['description'] : '',
+          'type' => ($is_array && !empty($field['type'])) ? $field['type'] : search_api_extract_inner_type($this->index->options['fields'][$name]['type']),
+        );
+        $ret[$prefix . $this->max_suffix] = array(
+          'label' => ($is_array && !empty($field['name'])) ? $field['name'] . ' (Max)' : t('Search API ranges (Max)'),
+          'description' => ($is_array && !empty($field['description'])) ? $field['description'] : '',
+          'type' => ($is_array && !empty($field['type'])) ? $field['type'] : search_api_extract_inner_type($this->index->options['fields'][$name]['type']),
+        );
       }
     }
     return $ret;
   }
-
 }
